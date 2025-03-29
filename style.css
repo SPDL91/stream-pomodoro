@@ -2,7 +2,7 @@ body {
   height: 100%;
   margin: 0;
   background-color: rgb(69, 69, 69);
-  color: #FF69B4;
+  color: #CC3F85;
   font-family: Comic Sans MS;
   text-align: center;
   overflow: hidden;
@@ -19,7 +19,7 @@ body {
 
 #progress-value {
   width: 0;
-  background-color: #FF69B4;
+  background-color: #CC3F85;
 }
 
 #clock {
