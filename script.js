@@ -1,128 +1,96 @@
-const urlParams = new URLSearchParams(window.location.search);
+/* ───────────── Helper ───────────── */
+function qs(name, def){
+  const v = new URLSearchParams(location.search).get(name);
+  return v === null ? def : v;
+}
+function $(id){return document.getElementById(id);}
 
-const lengths = {
-  pomodoro: (Number(urlParams.get('pomodoro')) || 25) * 60,
-  shortBreak: (Number(urlParams.get('shortBreak')) || 5) * 60,
-  longBreak: (Number(urlParams.get('longBreak')) || 10) * 60,
+/* ───────────── Parameters ───────────── */
+let sessionLen = +qs("pomodoro"   , 25);   // minutes
+let shortLen   = +qs("shortBreak" ,  5);
+let longLen    = +qs("longBreak"  , 15);
+
+const hideCtrls = qs("controls" , "1") === "0";
+const autoStart = qs("autoStart", hideCtrls ? "1" : "0") === "1";  
+// → if controls are hidden and no autoStart given, default to autoplay
+
+if (hideCtrls) document.body.classList.add("hide-controls");
+
+/* ───────────── State ───────────── */
+let mode        = "FOCUS";          // FOCUS | SHORT | LONG
+let secondsLeft = sessionLen * 60;
+let cycle       = 0;                // counts completed focus sessions
+let timerId     = null;
+const beep      = $("beep");
+
+/* ───────────── DOM refs ───────────── */
+const tLeft     = $("time-left");
+const tLabel    = $("timer-label");
+const progress  = $("progress-value");
+
+$("session-length").value      = sessionLen;
+$("short-break-length").value  = shortLen;
+$("long-break-length").value   = longLen;
+
+/* ───────────── Rendering ───────────── */
+function fmt(sec){
+  const m = String(Math.floor(sec/60)).padStart(2,"0");
+  const s = String(sec%60).padStart(2,"0");
+  return `${m}:${s}`;
+}
+function paint(){
+  tLeft.textContent = fmt(secondsLeft);
+  tLabel.textContent =
+    mode === "FOCUS" ? "FOCUS TIME" :
+    mode === "SHORT" ? "SHORT BREAK" : "LONG BREAK";
+
+  const total =
+    mode === "FOCUS" ? sessionLen*60 :
+    mode === "SHORT" ? shortLen*60   : longLen*60;
+  progress.style.width = `${100 * (1 - secondsLeft/total)}%`;
 }
 
-const breakSound = new Audio('sounds/break.mp3');
-const workSound = new Audio('sounds/work.mp3');
-
-let mode;
-let interval;
-let length;
-let paused;
-let remainingTime;
-let endTime;
-
-document.querySelector('#mode-buttons').addEventListener('click', function (event) {
-  const { mode: newMode } = event.target.dataset;
-  if (!newMode) return;
-
-  mode = newMode;
-
-  document.querySelectorAll('button[data-mode]').forEach(e => e.classList.remove('active'));
-  document.querySelector(`[data-mode="${mode}"]`).classList.add('active');
-
-  length = lengths[mode];
-  startTimer();
-});
-
-document.querySelector('#pause-button').addEventListener('click', function (event) {
-  if (paused) {
-    endTime = Date.now() + remainingTime * 1000;
-    runTimer();
-  } else if (interval) {
-    clearInterval(interval);
-    interval = null;
-    paused = true;
-    document.querySelector('#pause-button').classList.add('active');
-    document.title = 'PAUSED';
-    document.getElementById('text').textContent = 'PAUSED';
+/* ───────────── Core logic ───────────── */
+function switchMode(){
+  if (mode === "FOCUS"){
+    mode = (++cycle % 4 === 0) ? "LONG" : "SHORT";
+  } else {
+    mode = "FOCUS";
   }
-});
-
-document.querySelector('#adjust-buttons').addEventListener('click', function (event) {
-  if (paused) {
-    return;
+  secondsLeft =
+    mode === "FOCUS" ? sessionLen*60 :
+    mode === "SHORT" ? shortLen*60   : longLen*60;
+  paint();
+}
+function tick(){
+  if (--secondsLeft < 0){
+    beep.play();
+    switchMode();
   }
-
-  const { action } = event.target.dataset;
-
-  switch (action) {
-    case "plus":
-      if (interval) {
-        length += 60;
-        endTime += 60000;
-        updateClock();
-      } else {
-        length = 60;
-        startTimer();
-      }
-      break;
-    case "minus":
-      if (interval) {
-        length -= 60;
-        endTime -= 60000;
-        if (endTime < 0) {
-          endTime = 0;
-        }
-        updateClock();
-      }
-      break;
-  }
-});
-
-function updateClock() {
-  remainingTime = (endTime - Date.now()) / 1000;
-  if (remainingTime <= 0) {
-    remainingTime = 0;
-    clearInterval(interval);
-    interval = null;
-    
-    // Auto-switch to next mode
-    if (mode === 'pomodoro') {
-      breakSound.play();
-      mode = 'shortBreak';
-    } else {
-      workSound.play();
-      mode = 'pomodoro';
-    }
-    
-    // Update UI for new mode
-    document.querySelectorAll('button[data-mode]').forEach(e => e.classList.remove('active'));
-    document.querySelector(`[data-mode="${mode}"]`).classList.add('active');
-    
-    // Start new timer
-    length = lengths[mode];
-    startTimer();
-  }
-
-  const remainingSeconds = Math.round(remainingTime);
-  const minutes = Math.floor(remainingSeconds / 60).toString().padStart(2, '0');
-  const seconds = (remainingSeconds % 60).toString().padStart(2, '0');
-  const time = `${minutes}:${seconds}`;
-
-  document.getElementById('clock').textContent = time;
-
-  const text = mode === 'pomodoro' ? 'FOCUS TIME' : 'BREAK TIME';
-  document.title = `${time} - ${text}`;
-  document.getElementById('text').textContent = text;
-
-  const progress = length == 0 ? 1 : ((length - remainingTime) / length);
-  document.getElementById('progress-value').style.width = progress * 100 + "vw";
+  paint();
+}
+function start(){
+  if (!timerId) timerId = setInterval(tick, 1000);
+}
+function stop(){
+  clearInterval(timerId);
+  timerId = null;
 }
 
-function runTimer() {
-  clearInterval(interval);
-  paused = false;
-  document.querySelector('#pause-button').classList.remove('active')
-  updateClock();
-  interval = setInterval(updateClock, 100);
-}
+/* ───────────── Controls ───────────── */
+$("start_stop").onclick = () => (timerId ? stop() : start());
 
-function startTimer() {
-  endTime = Date.now() + length * 1000;
-  runTimer();
-}
+$("reset").onclick = () =>{
+  stop();
+  cycle = 0;
+  mode  = "FOCUS";
+  sessionLen = +$("session-length").value;
+  shortLen   = +$("short-break-length").value;
+  longLen    = +$("long-break-length").value;
+  secondsLeft = sessionLen*60;
+  paint();
+};
+
+/* ───────────── Init ───────────── */
+paint();
+if (autoStart) start();

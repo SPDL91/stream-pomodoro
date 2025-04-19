@@ -1,37 +1,36 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <meta http-equiv="X-UA-Compatible" content="ie=edge" />
-  <link href="style.css" rel="stylesheet" />
-  <title>Stream Pomodoro</title>
+  <title>Stream‑Pomodoro</title>
+
+  <!-- Google fonts – matches your world‑clock overlay -->
+  <link href="https://fonts.googleapis.com/css2?family=Comic+Neue:wght@700&family=Roboto+Mono:wght@500&display=swap" rel="stylesheet"/>
+
+  <link rel="stylesheet" href="style.css" />
 </head>
 
 <body>
-  <div id="progress">
-    <div id="progress-value" />
-  </div>
-  <div id="clock">--:--</div>
-  <div id="text">&nbsp;</div>
-  <hr />
-  <div id="mode-buttons" class="btn-group">
-    <button data-mode="pomodoro">Pomodoro</button>
-    <button data-mode="shortBreak">Short Break</button>
-    <button data-mode="longBreak">Long Break</button>
+  <!-- progress bar -->
+  <div id="progress-container"><div id="progress-value"></div></div>
+
+  <!-- timer -->
+  <h1 id="time-left">25:00</h1>
+  <h2 id="timer-label">FOCUS&nbsp;TIME</h2>
+
+  <!-- controls (optional) -->
+  <div id="controls">
+    <button id="start_stop">Start / Pause</button>
+    <button id="reset">Reset</button>
+
+    <div class="picker">
+      <label>Focus <input id="session-length"      type="number" min="1" max="120" value="25"></label>
+      <label>Short break <input id="short-break-length" type="number" min="1" max="60"  value="5"></label>
+      <label>Long break  <input id="long-break-length"  type="number" min="1" max="60"  value="15"></label>
+    </div>
   </div>
 
-  <div class="btn-group">
-    <button id="pause-button" data-action="pause">||</button>
-  </div>
-
-  <div id="adjust-buttons" class="btn-group">
-    <button data-action="minus">-</button>
-    <button data-action="plus">+</button>
-  </div>
-
+  <audio id="beep" src="sounds/beep.mp3" preload="auto"></audio>
   <script src="script.js"></script>
 </body>
-
 </html>
