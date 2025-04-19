@@ -17,7 +17,7 @@ const autoStart = qs("autoStart", hideCtrls ? "1" : "0") === "1";
 if (hideCtrls) document.body.classList.add("hide-controls");
 
 /* ───────────── State ───────────── */
-let mode        = "FOCUS";          // FOCUS | SHORT | LONG
+let mode        = "Focus";          // Focus | Short | Long
 let secondsLeft = sessionLen * 60;
 let cycle       = 0;                // counts completed focus sessions
 let timerId     = null;
@@ -41,25 +41,25 @@ function fmt(sec){
 function paint(){
   tLeft.textContent = fmt(secondsLeft);
   tLabel.textContent =
-    mode === "FOCUS" ? "FOCUS TIME" :
-    mode === "SHORT" ? "SHORT BREAK" : "LONG BREAK";
+    mode === "Focus" ? "Focus Time" :
+    mode === "Short" ? "Short Break" : "Long Break";
 
   const total =
-    mode === "FOCUS" ? sessionLen*60 :
-    mode === "SHORT" ? shortLen*60   : longLen*60;
+    mode === "Focus" ? sessionLen*60 :
+    mode === "Short" ? shortLen*60   : longLen*60;
   progress.style.width = `${100 * (1 - secondsLeft/total)}%`;
 }
 
 /* ───────────── Core logic ───────────── */
 function switchMode(){
-  if (mode === "FOCUS"){
-    mode = (++cycle % 4 === 0) ? "LONG" : "SHORT";
+  if (mode === "Focus"){
+    mode = (++cycle % 4 === 0) ? "Long" : "Short";
   } else {
-    mode = "FOCUS";
+    mode = "Focus";
   }
   secondsLeft =
-    mode === "FOCUS" ? sessionLen*60 :
-    mode === "SHORT" ? shortLen*60   : longLen*60;
+    mode === "Focus" ? sessionLen*60 :
+    mode === "Short" ? shortLen*60   : longLen*60;
   paint();
 }
 function tick(){
@@ -83,7 +83,7 @@ $("start_stop").onclick = () => (timerId ? stop() : start());
 $("reset").onclick = () =>{
   stop();
   cycle = 0;
-  mode  = "FOCUS";
+  mode  = "Focus";
   sessionLen = +$("session-length").value;
   shortLen   = +$("short-break-length").value;
   longLen    = +$("long-break-length").value;

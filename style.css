@@ -2,7 +2,7 @@
 :root{
   --accent:#fbdceb;           /* default pink – override in Custom CSS */
   --bg:rgba(0,0,0,0);         /* transparent for OBS                    */
-  --font-display:"Comic Neue",sans-serif;
+  --font-display:"Roboto Mono",monospace;
   --font-mono:"Roboto Mono",monospace;
 }
 
@@ -87,18 +87,6 @@ input{
   text-align:center;
   font-family:var(--font-mono);
 }
-/* --- tighten vertical rhythm --- */
-#time-left,
-#timer-label{
-  margin:0;               /* remove enormous default margins      */
-}
 
-#progress-container{
-  margin-bottom:0.2rem;   /* tiny gap under the bar               */
-}
-
-#timer-label{
-  margin-top:0.4rem;      /* small gap below the digits           */
-}
 /* hidden when &controls=0 */
 body.hide-controls #controls{display:none;}
