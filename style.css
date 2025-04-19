@@ -87,6 +87,18 @@ input{
   text-align:center;
   font-family:var(--font-mono);
 }
+/* --- tighten vertical rhythm --- */
+#time-left,
+#timer-label{
+  margin:0;               /* remove enormous default margins      */
+}
 
+#progress-container{
+  margin-bottom:0.4rem;   /* tiny gap under the bar               */
+}
+
+#timer-label{
+  margin-top:0.2rem;      /* small gap below the digits           */
+}
 /* hidden when &controls=0 */
 body.hide-controls #controls{display:none;}
