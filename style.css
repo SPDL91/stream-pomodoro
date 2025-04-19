@@ -21,6 +21,15 @@ html,body{
   user-select:none;
 }
 
+/* ===== STACK ===== */
+#stack{
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  gap:0.25rem;
+}
+#stack > *{ margin:0; } /* zero out default heading margins   */
+
 /* ===== TIMER ===== */
 #time-left{
   font-size:10vw;
