@@ -1,16 +1,23 @@
-/* ===== THEME ===== */
+/* ───────────────────────────────────────────────
+   Stream‑Pomodoro  CSS
+   • single accent colour  →  :root{ --accent:#xxxxxx }
+   • balanced vertical spacing (stacked layout)
+   ─────────────────────────────────────────────── */
+
+/* =====  GLOBAL THEME TOKENS  ===== */
 :root{
-  --accent:#fbdceb;           /* default pink – override in Custom CSS */
-  --bg:rgba(0,0,0,0);         /* transparent for OBS                    */
-  --font-display:"Roboto Mono",monospace;
+  --accent:#fbdceb;            /* override in OBS “Custom CSS”  */
+  --bg:rgba(0,0,0,0);          /* transparent for OBS           */
+  --font-display:"Comic Neue",sans-serif;
   --font-mono:"Roboto Mono",monospace;
 }
 
+/* =====  RESET / PAGE  ===== */
 html,body{
   height:100%;
   margin:0;
   background:var(--bg);
-  color:var(--accent);               /* every visible text uses accent  */
+  color:var(--accent);
   display:flex;
   flex-direction:column;
   align-items:center;
@@ -21,33 +28,25 @@ html,body{
   user-select:none;
 }
 
-/* ===== STACK ===== */
+/* =========================================================
+   VERTICAL STACK  (progress bar • big digits • label)
+   ========================================================= */
 #stack{
   display:flex;
   flex-direction:column;
   align-items:center;
-  gap:0.15rem;
-}
-#stack > *{ margin:0; } /* zero out default heading margins   */
-
-/* ===== TIMER ===== */
-#time-left{
-  font-size:10vw;
-  line-height:1;
-  letter-spacing:2px;
-}
-#timer-label{
-  font-size:3vw;
-  margin-top:-1rem;
-  font-weight:700;
+  /* no uniform `gap` — we will control each margin manually */
 }
 
-/* ===== PROGRESS BAR ===== */
+/* remove default margins that headings bring */
+#stack > *{ margin:0; }
+
+/* =====  PROGRESS BAR  ===== */
 #progress-container{
   width:100%;
   height:6px;
   background:rgba(255,255,255,.15);   /* faint track */
-  margin-bottom:1rem;
+  margin-bottom:0.4rem;               /* space under the bar */
 }
 #progress-value{
   height:100%;
@@ -56,7 +55,23 @@ html,body{
   transition:width .25s linear;
 }
 
-/* ===== CONTROLS ===== */
+/* =====  TIMER DIGITS  ===== */
+#time-left{
+  font-size:10vw;
+  line-height:0.9;                    /* shrink internal leading */
+  letter-spacing:2px;
+}
+
+/* =====  LABEL  ===== */
+#timer-label{
+  font-size:3vw;
+  font-weight:700;
+  margin-top:0.25rem;                 /* space under digits */
+}
+
+/* =========================================================
+   CONTROLS  (start/pause, reset, pickers)
+   ========================================================= */
 #controls{
   margin-top:2rem;
   display:flex;
@@ -64,6 +79,7 @@ html,body{
   gap:1rem;
   align-items:center;
 }
+
 button{
   background:var(--accent);           /* accent background */
   border:none;
@@ -74,19 +90,19 @@ button{
   cursor:pointer;
   font-family:var(--font-display);
 }
-button:active{transform:scale(.97);}
+button:active{ transform:scale(.97); }
 
 .picker{
   display:flex;
   gap:1rem;
   font-size:.9rem;
 }
-label{display:flex;flex-direction:column;gap:.2rem;}
+label{ display:flex; flex-direction:column; gap:.2rem; }
 input{
   width:3.5rem;
   text-align:center;
   font-family:var(--font-mono);
 }
 
-/* hidden when &controls=0 */
-body.hide-controls #controls{display:none;}
+/* =====  Hide controls when &controls=0  ===== */
+body.hide-controls #controls{ display:none; }
