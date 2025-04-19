@@ -23,9 +23,9 @@ It is a single HTML / CSS / JavaScript page—no external libraries or insta
    URL `https://spdl91.github.io/stream-pomodoro/`
 2. To change durations, append parameters:  
 
-   ```
+   
    https://spdl91.github.io/stream-pomodoro/?pomodoro=50&shortBreak=10&longBreak=20
-   ```
+   
 3. Right‑click the source → **Interact** to control the timer.
 
 ---
@@ -42,49 +42,28 @@ It is a single HTML / CSS / JavaScript page—no external libraries or insta
 
 Example:
 
-```
+
 https://spdl91.github.io/stream-pomodoro/?pomodoro=40&shortBreak=8&longBreak=18&autoStart=false&volume=0.5
-```
+
 
 ---
 
 ## Styling with Custom CSS in OBS
-
-```css
-/* Transparent background (keep this) */
-body { background: rgba(0,0,0,0); }
 
 /* Change font and text colour */
 body            { font-family: "Fira Code", monospace; color: #e0e0e0; }
 
 /* Change progress bar colour */
 #progress-value { background: #e0e0e0; }
-```
-
----
 
 ## Local development
 
-```
 git clone https://github.com/your-user/stream-pomodoro.git
 cd stream-pomodoro
 # serve the folder with any static server
 npx serve .
-```
 
 Edit `index.html`, `style.css` or `script.js` and refresh.
-
----
-
-## File layout
-
-```
-.
-├── index.html
-├── style.css
-├── script.js
-└── sounds/
-```
 
 ---
 
@@ -93,8 +72,4 @@ Edit `index.html`, `style.css` or `script.js` and refresh.
 Forked from original by [njallam](https://github.com/njallam/stream-pomodoro).
 
 ---
-
-## License
-
-MIT
 ```
