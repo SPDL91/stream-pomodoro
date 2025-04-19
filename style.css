@@ -94,11 +94,11 @@ input{
 }
 
 #progress-container{
-  margin-bottom:0.4rem;   /* tiny gap under the bar               */
+  margin-bottom:0.2rem;   /* tiny gap under the bar               */
 }
 
 #timer-label{
-  margin-top:0.2rem;      /* small gap below the digits           */
+  margin-top:0.4rem;      /* small gap below the digits           */
 }
 /* hidden when &controls=0 */
 body.hide-controls #controls{display:none;}
