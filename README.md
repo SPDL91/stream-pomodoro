@@ -22,10 +22,7 @@ It is a single HTML / CSS / JavaScript page—no external libraries or insta
 1. Add **Browser Source**  
    URL `https://spdl91.github.io/stream-pomodoro/`
 2. To change durations, append parameters:  
-
-   
    https://spdl91.github.io/stream-pomodoro/?pomodoro=50&shortBreak=10&longBreak=20
-   
 3. Right‑click the source → **Interact** to control the timer.
 
 ---
@@ -42,9 +39,7 @@ It is a single HTML / CSS / JavaScript page—no external libraries or insta
 
 Example:
 
-
 https://spdl91.github.io/stream-pomodoro/?pomodoro=40&shortBreak=8&longBreak=18&autoStart=false&volume=0.5
-
 
 ---
 
