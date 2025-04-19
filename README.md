@@ -1,48 +1,100 @@
-# Usage Guide
+```markdown
+# stream‑pomodoro
 
-## OBS
+A small web application that shows a Pomodoro timer intended for OBS Browser Sources.  
+It is a single HTML / CSS / JavaScript page—no external libraries or installation required.
 
-This project is intended to be use as a browser source in OBS.
+---
 
-1. Create a browser source using the following URL: `https://spdl91.github.io/stream-pomodoro/`
-   - To customise the focus and break time lengths use the following URL instead: `https://spdl.github.io/stream-pomodoro/?pomodoro=45&shortBreak=10&longBreak=15` (replacing `45`, `10` and `15` with minute values as desired.)
-2. To interact with the timer, right click the source in OBS and click "Interact".
-3. You can use Custom CSS to customise the look of the timer. See below for examples.
+## Main capabilities
 
-### Custom CSS
+* Fits automatically to any size browser source in OBS.
+* Focus, short‑break and long‑break lengths can be set with URL parameters.
+* Pause, resume, reset and skip controls are available through the OBS “Interact” window.
+* Optional sound cues for each phase (replace the audio files in the `sounds` folder if you like).
+* Fully themeable from OBS by pasting Custom CSS—change colours, fonts and layout without editing the files.
+* Runs offline after the first load.
 
-#### Custom Font
-```css
-body {
-    background-color: rgba(0, 0, 0, 0);
-    font-family: 'Comic Sans MS';
-}
+---
+
+## Quick start in OBS
+
+1. Add **Browser Source**  
+   URL `https://spdl91.github.io/stream-pomodoro/`
+2. To change durations, append parameters:  
+
+   ```
+   https://spdl91.github.io/stream-pomodoro/?pomodoro=50&shortBreak=10&longBreak=20
+   ```
+3. Right‑click the source → **Interact** to control the timer.
+
+---
+
+## URL parameters
+
+| Name         | Default | Purpose                                  |
+|--------------|:------:|-------------------------------------------|
+| `pomodoro`   | `25`   | Focus period length in minutes            |
+| `shortBreak` | `5`    | Short break length in minutes             |
+| `longBreak`  | `15`   | Long break length in minutes              |
+| `autoStart`  | `true` | If `true`, the next phase starts itself   |
+| `volume`     | `1`    | Audio volume from `0` (mute) to `1` (full)|
+
+Example:
+
 ```
-Set the value of `font-family` (in this case `Comic Sans MS`) to the exact name of any font installed on your computer.
-
-#### Custom Text Colour
-```css
-body {
-    background-color: rgba(0, 0, 0, 0);
-    color: black;
-}
-#progress-value {
-    background-color: black
-}
+https://spdl91.github.io/stream-pomodoro/?pomodoro=40&shortBreak=8&longBreak=18&autoStart=false&volume=0.5
 ```
-Use the above CSS to change the default white text colour to black. You can also replace `black` above with another [CSS colour keyword](https://developer.mozilla.org/en-US/docs/Web/CSS/color_value#color_keywords).  The first instance is for the text colour, the second is for the progress bar.
 
-##### Combining with Custom Font
+---
 
-To additionally have a custom font, simply copy the `font-family` line from **Custom Font** below the `color` line above.
+## Styling with Custom CSS in OBS
 
 ```css
-body {
-    background-color: rgba(0, 0, 0, 0);
-    color: black;
-    font-family: 'Comic Sans MS';
-}
-#progress-value {
-    background-color: black
-}
+/* Transparent background (keep this) */
+body { background: rgba(0,0,0,0); }
+
+/* Change font and text colour */
+body            { font-family: "Fira Code", monospace; color: #e0e0e0; }
+
+/* Change progress bar colour */
+#progress-value { background: #e0e0e0; }
+```
+
+---
+
+## Local development
+
+```
+git clone https://github.com/your-user/stream-pomodoro.git
+cd stream-pomodoro
+# serve the folder with any static server
+npx serve .
+```
+
+Edit `index.html`, `style.css` or `script.js` and refresh.
+
+---
+
+## File layout
+
+```
+.
+├── index.html
+├── style.css
+├── script.js
+└── sounds/
+```
+
+---
+
+## Acknowledgement
+
+Forked from original by [njallam](https://github.com/njallam/stream-pomodoro).
+
+---
+
+## License
+
+MIT
 ```

@@ -21,14 +21,11 @@ let mode        = "Focus";          // Focus | Short | Long
 let secondsLeft = sessionLen * 60;
 let cycle       = 0;                // counts completed focus sessions
 let timerId     = null;
-// REMOVED: const beep      = $("beep"); // No longer needed
 
 /* ───────────── DOM refs ───────────── */
 const tLeft     = $("time-left");
 const tLabel    = $("timer-label");
 const progress  = $("progress-value");
-
-// ADDED: Get references to the new audio elements
 const workSound = $("work-sound");
 const breakSound = $("break-sound");
 
@@ -64,7 +61,6 @@ function switchMode(){
   secondsLeft =
     mode === "Focus" ? sessionLen*60 :
     mode === "Short" ? shortLen*60   : longLen*60;
-  // Don't call paint() here, it's called in tick() or reset()
 }
 
 function tick(){
@@ -82,7 +78,7 @@ function tick(){
     }
     // --- End Sound Logic ---
 
-    // Now switch to the next mode
+    // Switch to the next mode
     switchMode();
   }
   // Update visuals every tick regardless

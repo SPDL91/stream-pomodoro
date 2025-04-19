@@ -1,7 +1,6 @@
 /* ───────────────────────────────────────────────
    Stream‑Pomodoro  CSS
    • single accent colour  →  :root{ --accent:#xxxxxx }
-   • balanced vertical spacing (stacked layout)
    ─────────────────────────────────────────────── */
 
 /* =====  GLOBAL THEME TOKENS  ===== */
@@ -35,7 +34,6 @@ html,body{
   display:flex;
   flex-direction:column;
   align-items:center;
-  /* no uniform `gap` — we will control each margin manually */
 }
 
 /* remove default margins that headings bring */
@@ -58,7 +56,7 @@ html,body{
 /* =====  TIMER DIGITS  ===== */
 #time-left{
   font-size:10vw;
-  line-height:0.9;                    /* shrink internal leading */
+  line-height:0.9;
   letter-spacing:2px;
 }
 
@@ -67,6 +65,7 @@ html,body{
   font-size:3vw;
   font-weight:700;
   margin-top:0.3rem;                 /* space under digits */
+  font-family:var(--font-mono);
 }
 
 /* =========================================================
@@ -83,12 +82,12 @@ html,body{
 button{
   background:var(--accent);           /* accent background */
   border:none;
-  color:#000;                         /* readable on bright accent */
+  color:#000;
   padding:.6rem 1.2rem;
   font-weight:700;
   border-radius:6px;
   cursor:pointer;
-  font-family:var(--font-display);
+  font-family:var(--font-mono);
 }
 button:active{ transform:scale(.97); }
 
