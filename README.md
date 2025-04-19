@@ -37,10 +37,6 @@ It is a single HTML / CSS / JavaScript page—no external libraries or insta
 | `autoStart`  | `true` | If `true`, the next phase starts itself   |
 | `volume`     | `1`    | Audio volume from `0` (mute) to `1` (full)|
 
-Example:
-
-https://spdl91.github.io/stream-pomodoro/?pomodoro=40&shortBreak=8&longBreak=18&autoStart=false&volume=0.5
-
 ---
 
 ## Styling with Custom CSS in OBS
