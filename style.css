@@ -26,7 +26,7 @@ html,body{
   display:flex;
   flex-direction:column;
   align-items:center;
-  gap:0.25rem;
+  gap:0.15rem;
 }
 #stack > *{ margin:0; } /* zero out default heading margins   */
 
