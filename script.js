@@ -11,7 +11,7 @@ let shortLen   = +qs("shortBreak" ,  5);
 let longLen    = +qs("longBreak"  , 15);
 
 const hideCtrls = qs("controls" , "1") === "0";
-const autoStart = qs("autoStart", hideCtrls ? "1" : "0") === "1";  
+const autoStart = qs("autoStart", hideCtrls ? "1" : "0") === "1";
 // → if controls are hidden and no autoStart given, default to autoplay
 
 if (hideCtrls) document.body.classList.add("hide-controls");
@@ -21,12 +21,16 @@ let mode        = "Focus";          // Focus | Short | Long
 let secondsLeft = sessionLen * 60;
 let cycle       = 0;                // counts completed focus sessions
 let timerId     = null;
-const beep      = $("beep");
+// REMOVED: const beep      = $("beep"); // No longer needed
 
 /* ───────────── DOM refs ───────────── */
 const tLeft     = $("time-left");
 const tLabel    = $("timer-label");
 const progress  = $("progress-value");
+
+// ADDED: Get references to the new audio elements
+const workSound = $("work-sound");
+const breakSound = $("break-sound");
 
 $("session-length").value      = sessionLen;
 $("short-break-length").value  = shortLen;
@@ -60,17 +64,36 @@ function switchMode(){
   secondsLeft =
     mode === "Focus" ? sessionLen*60 :
     mode === "Short" ? shortLen*60   : longLen*60;
-  paint();
+  // Don't call paint() here, it's called in tick() or reset()
 }
+
 function tick(){
   if (--secondsLeft < 0){
-    beep.play();
+    // --- Sound Logic ---
+    // Play sound based on the mode that just FINISHED
+    if (mode === "Focus") {
+        // Focus session ended, play break sound
+        breakSound.currentTime = 0; // Rewind to start
+        breakSound.play().catch(e => console.error("Error playing break sound:", e)); // Play with error handling
+    } else {
+        // Break session ended, play work sound
+        workSound.currentTime = 0; // Rewind to start
+        workSound.play().catch(e => console.error("Error playing work sound:", e)); // Play with error handling
+    }
+    // --- End Sound Logic ---
+
+    // Now switch to the next mode
     switchMode();
   }
+  // Update visuals every tick regardless
   paint();
 }
+
 function start(){
-  if (!timerId) timerId = setInterval(tick, 1000);
+  if (!timerId) {
+      paint(); // Ensure UI is up-to-date when starting
+      timerId = setInterval(tick, 1000);
+  }
 }
 function stop(){
   clearInterval(timerId);
@@ -84,13 +107,14 @@ $("reset").onclick = () =>{
   stop();
   cycle = 0;
   mode  = "Focus";
+  // Re-read values from inputs in case they changed
   sessionLen = +$("session-length").value;
   shortLen   = +$("short-break-length").value;
   longLen    = +$("long-break-length").value;
   secondsLeft = sessionLen*60;
-  paint();
+  paint(); // Update display immediately on reset
 };
 
 /* ───────────── Init ───────────── */
-paint();
+paint(); // Initial paint on load
 if (autoStart) start();
