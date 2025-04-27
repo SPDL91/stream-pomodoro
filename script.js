@@ -54,7 +54,7 @@ function paint(){
 /* ───────────── Core logic ───────────── */
 function switchMode(){
   if (mode === "Focus"){
-    mode = (++cycle % 4 === 0) ? "Long" : "Short";
+    mode = (++cycle % 5 === 0) ? "Long" : "Short";
   } else {
     mode = "Focus";
   }
