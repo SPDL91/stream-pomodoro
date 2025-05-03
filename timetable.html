@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>타임테이블 (AEST) - URL Config</title> <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://unpkg.com/tone"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        /* Basic styling, background will be set by JS */
+        body {
+            font-family: 'Inter', sans-serif;
+            color: #1a202c; /* Default text color, consider making this configurable too? */
+            padding: 0.5rem;
+            font-size: 0.9rem;
+            /* Ensure high contrast against potentially transparent background */
+            text-shadow: 0 0 2px rgba(255, 255, 255, 0.5); /* Subtle white shadow for readability */
+        }
+        .schedule-item {
+            border-radius: 0.375rem;
+            padding: 0.5rem 0.75rem;
+            margin-bottom: 0.375rem;
+            transition: background-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+            /* Use RGBA for background to allow item transparency if needed */
+            background-color: rgba(255, 255, 255, 0.9); /* Slightly transparent white */
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1); /* Softer shadow */
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+        .schedule-item.current {
+            /* Use RGBA for potentially transparent backgrounds */
+            background-color: rgba(224, 242, 254, 0.95); /* Lighter blue, slightly transparent */
+            border-left: 4px solid #38bdf8;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.15);
+        }
+        .schedule-item.past {
+            opacity: 0.7; /* Slightly more visible past items */
+             background-color: rgba(248, 250, 252, 0.85); /* Lighter gray, more transparent */
+        }
+        .schedule-item.past .activity-ko,
+        .schedule-item.past .activity-en {
+            text-decoration: line-through;
+            color: #94a3b8;
+        }
+        .checkmark {
+            color: #22c55e;
+            font-weight: bold;
+            margin-right: 0.25rem;
+            display: inline-block;
+        }
+        .time-stacked-col {
+            flex-basis: 25%;
+            flex-shrink: 0;
+            text-align: center;
+            font-size: 0.8rem;
+            color: #4a5568;
+            line-height: 1.2;
+        }
+        .time-stacked-col span { display: block; }
+        .time-stacked-col .timezone-label { font-size: 0.7rem; color: #718096; }
+        .activity-details-col { flex-basis: 70%; flex-grow: 1; text-align: left; }
+        .activity-ko { font-weight: 500; font-size: 0.9rem; display: block; margin-bottom: 0.1rem; color: #1e293b; }
+        .activity-en { font-size: 0.8rem; color: #64748b; display: block; }
+
+        /* REMOVED config-panel styles */
+
+        #schedule-container {
+             /* Container takes full width, height determined by content */
+             width: 100%;
+        }
+    </style>
+</head>
+<body class="antialiased">
+    <div id="schedule-container">
+        <div class="text-center text-gray-500 p-4">로드 중...</div>
+    </div>
+
+    <script>
+        // --- Schedule Data ---
+        const scheduleData = [
+            // (Data remains the same)
+            { aest: '00:00-00:50', kst: '23:00-23:50', ko: '집중 (50분)', en: 'Focus (50m)', startMinutesAEST: 0, endMinutesAEST: 50 }, { aest: '00:50-01:00', kst: '23:50-00:00', ko: '휴식 (10분)', en: 'Break (10m)', startMinutesAEST: 50, endMinutesAEST: 60 }, { aest: '01:00-01:50', kst: '00:00-00:50', ko: '집중 (50분)', en: 'Focus (50m)', startMinutesAEST: 60, endMinutesAEST: 110 }, { aest: '01:50-02:00', kst: '00:50-01:00', ko: '휴식 (10분)', en: 'Break (10m)', startMinutesAEST: 110, endMinutesAEST: 120 }, { aest: '02:00-02:50', kst: '01:00-01:50', ko: '집중 (50분)', en: 'Focus (50m)', startMinutesAEST: 120, endMinutesAEST: 170 }, { aest: '02:50-03:00', kst: '01:50-02:00', ko: '휴식 (10분)', en: 'Break (10m)', startMinutesAEST: 170, endMinutesAEST: 180 }, { aest: '03:00-03:50', kst: '02:00-02:50', ko: '집중 (50분)', en: 'Focus (50m)', startMinutesAEST: 180, endMinutesAEST: 230 }, { aest: '03:50-04:00', kst: '02:50-03:00', ko: '휴식 (10분)', en: 'Break (10m)', startMinutesAEST: 230, endMinutesAEST: 240 }, { aest: '04:00-05:00', kst: '03:00-04:00', ko: '긴 휴식 (60분)', en: 'Long Break (60m)', startMinutesAEST: 240, endMinutesAEST: 300 }, { aest: '05:00-05:50', kst: '04:00-04:50', ko: '집중 (50분)', en: 'Focus (50m)', startMinutesAEST: 300, endMinutesAEST: 350 }, { aest: '05:50-06:00', kst: '04:50-05:00', ko: '휴식 (10분)', en: 'Break (10m)', startMinutesAEST: 350, endMinutesAEST: 360 }, { aest: '06:00-06:50', kst: '05:00-05:50', ko: '집중 (50분)', en: 'Focus (50m)', startMinutesAEST: 360, endMinutesAEST: 410 }, { aest: '06:50-07:00', kst: '05:50-06:00', ko: '휴식 (10분)', en: 'Break (10m)', startMinutesAEST: 410, endMinutesAEST: 420 }, { aest: '07:00-07:50', kst: '06:00-06:50', ko: '집중 (50분)', en: 'Focus (50m)', startMinutesAEST: 420, endMinutesAEST: 470 }, { aest: '07:50-08:00', kst: '06:50-07:00', ko: '휴식 (10분)', en: 'Break (10m)', startMinutesAEST: 470, endMinutesAEST: 480 }, { aest: '08:00-08:50', kst: '07:00-07:50', ko: '집중 (50분)', en: 'Focus (50m)', startMinutesAEST: 480, endMinutesAEST: 530 }, { aest: '08:50-09:00', kst: '07:50-08:00', ko: '휴식 (10분)', en: 'Break (10m)', startMinutesAEST: 530, endMinutesAEST: 540 }, { aest: '09:00-09:30', kst: '08:00-08:30', ko: '아침 식사 (30분)', en: 'Breakfast (30m)', startMinutesAEST: 540, endMinutesAEST: 570 }, { aest: '09:30-10:00', kst: '08:30-09:00', ko: '휴식 또는 가벼운 활동 (30분)', en: 'Break or Light Activity (30m)', startMinutesAEST: 570, endMinutesAEST: 600 }, { aest: '10:00-10:50', kst: '09:00-09:50', ko: '집중 (50분)', en: 'Focus (50m)', startMinutesAEST: 600, endMinutesAEST: 650 }, { aest: '10:50-11:00', kst: '09:50-10:00', ko: '휴식 (10분)', en: 'Break (10m)', startMinutesAEST: 650, endMinutesAEST: 660 }, { aest: '11:00-11:50', kst: '10:00-10:50', ko: '집중 (50분)', en: 'Focus (50m)', startMinutesAEST: 660, endMinutesAEST: 710 }, { aest: '11:50-12:00', kst: '10:50-11:00', ko: '휴식 (10분)', en: 'Break (10m)', startMinutesAEST: 710, endMinutesAEST: 720 }, { aest: '12:00-12:50', kst: '11:00-11:50', ko: '집중 (50분)', en: 'Focus (50m)', startMinutesAEST: 720, endMinutesAEST: 770 }, { aest: '12:50-13:00', kst: '11:50-12:00', ko: '휴식 (10분)', en: 'Break (10m)', startMinutesAEST: 770, endMinutesAEST: 780 }, { aest: '13:00-13:50', kst: '12:00-12:50', ko: '집중 (50분)', en: 'Focus (50m)', startMinutesAEST: 780, endMinutesAEST: 830 }, { aest: '13:50-14:00', kst: '12:50-13:00', ko: '휴식 (10분)', en: 'Break (10m)', startMinutesAEST: 830, endMinutesAEST: 840 }, { aest: '14:00-14:30', kst: '13:00-13:30', ko: '점심 식사 (30분)', en: 'Lunch (30m)', startMinutesAEST: 840, endMinutesAEST: 870 }, { aest: '14:30-15:00', kst: '13:30-14:00', ko: '휴식 또는 가벼운 활동 (30분)', en: 'Break or Light Activity (30m)', startMinutesAEST: 870, endMinutesAEST: 900 }, { aest: '15:00-15:50', kst: '14:00-14:50', ko: '집중 (50분)', en: 'Focus (50m)', startMinutesAEST: 900, endMinutesAEST: 950 }, { aest: '15:50-16:00', kst: '14:50-15:00', ko: '휴식 (10분)', en: 'Break (10m)', startMinutesAEST: 950, endMinutesAEST: 960 }, { aest: '16:00-16:50', kst: '15:00-15:50', ko: '집중 (50분)', en: 'Focus (50m)', startMinutesAEST: 960, endMinutesAEST: 1010 }, { aest: '16:50-17:00', kst: '15:50-16:00', ko: '휴식 (10분)', en: 'Break (10m)', startMinutesAEST: 1010, endMinutesAEST: 1020 }, { aest: '17:00-17:50', kst: '16:00-16:50', ko: '집중 (50분)', en: 'Focus (50m)', startMinutesAEST: 1020, endMinutesAEST: 1070 }, { aest: '17:50-18:00', kst: '16:50-17:00', ko: '휴식 (10분)', en: 'Break (10m)', startMinutesAEST: 1070, endMinutesAEST: 1080 }, { aest: '18:00-18:50', kst: '17:00-17:50', ko: '집중 (50분)', en: 'Focus (50m)', startMinutesAEST: 1080, endMinutesAEST: 1130 }, { aest: '18:50-19:00', kst: '17:50-18:00', ko: '휴식 (10분)', en: 'Break (10m)', startMinutesAEST: 1130, endMinutesAEST: 1140 }, { aest: '19:00-19:30', kst: '18:00-18:30', ko: '저녁 식사 (30분)', en: 'Dinner (30m)', startMinutesAEST: 1140, endMinutesAEST: 1170 }, { aest: '19:30-20:00', kst: '18:30-19:00', ko: '휴식 또는 가벼운 활동 (30분)', en: 'Break or Light Activity (30m)', startMinutesAEST: 1170, endMinutesAEST: 1200 }, { aest: '20:00-20:50', kst: '19:00-19:50', ko: '집중 (50분)', en: 'Focus (50m)', startMinutesAEST: 1200, endMinutesAEST: 1250 }, { aest: '20:50-21:00', kst: '19:50-20:00', ko: '휴식 (10분)', en: 'Break (10m)', startMinutesAEST: 1250, endMinutesAEST: 1260 }, { aest: '21:00-21:50', kst: '20:00-20:50', ko: '집중 (50분)', en: 'Focus (50m)', startMinutesAEST: 1260, endMinutesAEST: 1310 }, { aest: '21:50-22:00', kst: '20:50-21:00', ko: '휴식 (10분)', en: 'Break (10m)', startMinutesAEST: 1310, endMinutesAEST: 1320 }, { aest: '22:00-22:50', kst: '21:00-21:50', ko: '집중 (50분)', en: 'Focus (50m)', startMinutesAEST: 1320, endMinutesAEST: 1370 }, { aest: '22:50-23:00', kst: '21:50-22:00', ko: '휴식 (10분)', en: 'Break (10m)', startMinutesAEST: 1370, endMinutesAEST: 1380 }, { aest: '23:00-23:50', kst: '22:00-22:50', ko: '집중 (50분)', en: 'Focus (50m)', startMinutesAEST: 1380, endMinutesAEST: 1430 }, { aest: '23:50-00:00', kst: '22:50-23:00', ko: '휴식 (10분)', en: 'Break (10m)', startMinutesAEST: 1430, endMinutesAEST: 1440 },
+        ];
+        const scheduleLength = scheduleData.length;
+
+        // --- DOM Elements ---
+        const scheduleContainer = document.getElementById('schedule-container');
+        // REMOVED input/button element variables
+
+        // --- State Variables ---
+        let currentActivityIndex = -1;
+        let synth = null;
+        let isMuted = false; // Will be set by URL param
+        let currentVolume = -10; // Default, will be set by URL param
+        let soundInitialized = false;
+        let audioContextResumed = false;
+
+        // --- Configuration (Defaults) ---
+        // These will be overridden by URL parameters
+        let config = {
+            linesBefore: 3,
+            linesAfter: 3,
+            volume: -10,
+            muted: false,
+            bgColor: 'f0f4f8', // Default light grey-blue hex
+            bgAlpha: 1.0     // Default opaque
+        };
+
+        // --- Helper Function: Parse URL Parameters ---
+        function getUrlParams() {
+            const params = new URLSearchParams(window.location.search);
+            const urlConfig = {};
+
+            // Lines Before/After (Numbers)
+            const linesBeforeParam = params.get('linesBefore');
+            if (linesBeforeParam !== null) {
+                const val = parseInt(linesBeforeParam, 10);
+                if (!isNaN(val) && val >= 0) urlConfig.linesBefore = val;
+            }
+            const linesAfterParam = params.get('linesAfter');
+            if (linesAfterParam !== null) {
+                const val = parseInt(linesAfterParam, 10);
+                if (!isNaN(val) && val >= 0) urlConfig.linesAfter = val;
+            }
+
+            // Volume (Number, dB range)
+            const volumeParam = params.get('volume');
+            if (volumeParam !== null) {
+                const val = parseFloat(volumeParam); // Allow float for dB? Tone.js uses numbers.
+                if (!isNaN(val)) urlConfig.volume = val; // Basic check, Tone.js handles range
+            }
+
+            // Muted (Boolean)
+            const mutedParam = params.get('muted');
+            if (mutedParam !== null) {
+                urlConfig.muted = mutedParam.toLowerCase() === 'true';
+            }
+
+            // Background Color (Hex String)
+            const bgColorParam = params.get('bgColor');
+            if (bgColorParam !== null && /^[0-9a-fA-F]{6}$/.test(bgColorParam)) { // Validate 6-digit hex
+                urlConfig.bgColor = bgColorParam;
+            } else if (bgColorParam !== null && /^[0-9a-fA-F]{3}$/.test(bgColorParam)) { // Allow 3-digit hex
+                 urlConfig.bgColor = bgColorParam.split('').map(c => c+c).join(''); // Expand to 6 digits
+            }
+
+
+            // Background Alpha (Number 0-1)
+            const bgAlphaParam = params.get('bgAlpha');
+            if (bgAlphaParam !== null) {
+                const val = parseFloat(bgAlphaParam);
+                if (!isNaN(val) && val >= 0 && val <= 1) {
+                    urlConfig.bgAlpha = val;
+                }
+            }
+
+            return urlConfig;
+        }
+
+        // --- Helper Function: Hex to RGBA ---
+        function hexToRgba(hex, alpha) {
+            // Remove leading # if present
+            hex = hex.replace(/^#/, '');
+
+            // Expand 3-digit hex to 6-digit
+            if (hex.length === 3) {
+                hex = hex.split('').map(c => c + c).join('');
+            }
+
+            if (hex.length !== 6) {
+                console.warn(`Invalid hex color: #${hex}. Falling back to default.`);
+                return `rgba(240, 244, 248, ${alpha})`; // Default color fallback
+            }
+
+            const bigint = parseInt(hex, 16);
+            const r = (bigint >> 16) & 255;
+            const g = (bigint >> 8) & 255;
+            const b = bigint & 255;
+
+            // Clamp alpha
+            alpha = Math.max(0, Math.min(1, alpha));
+
+            return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+        }
+
+        // --- Apply Configuration ---
+        function applyConfiguration() {
+            const urlParams = getUrlParams();
+            // Merge URL params over defaults
+            config = { ...config, ...urlParams };
+
+            console.log("Applied Configuration:", config);
+
+            // Apply background color and transparency
+            document.body.style.backgroundColor = hexToRgba(config.bgColor, config.bgAlpha);
+
+            // Apply sound settings
+            isMuted = config.muted;
+            currentVolume = config.volume;
+            if (soundInitialized && synth && synth.volume) {
+                synth.volume.value = isMuted ? -Infinity : currentVolume;
+                console.log("Initial sound volume set from config:", synth.volume.value);
+            }
+        }
+
+
+        // --- Sound Functions (Modified initialization) ---
+        function initializeSound() {
+            if (soundInitialized && synth) {
+                // Ensure volume reflects config even if re-initializing
+                if (synth.volume) synth.volume.value = isMuted ? -Infinity : currentVolume;
+                return true;
+            }
+            // (Rest of the initialization logic is the same)
+            if (typeof Tone === 'undefined' || !Tone.Synth) { console.error("Tone.js library not loaded correctly."); return false; }
+            if (Tone.context.state !== 'running') { if (audioContextResumed) { Tone.start().catch(err => console.warn("Could not resume AudioContext even after interaction:", err)); } else { console.log("AudioContext not running. Waiting for user interaction (click/touch)."); return false; } }
+            if (Tone.context.state !== 'running') { console.log("AudioContext still not running after attempt."); return false; }
+            try {
+                synth = new Tone.Synth().toDestination();
+                // Apply volume/mute state from config immediately after creation
+                synth.volume.value = isMuted ? -Infinity : currentVolume;
+                soundInitialized = true;
+                console.log("Sound initialized. Volume:", isMuted ? "Muted" : `${currentVolume} dB`);
+                return true;
+            } catch (error) {
+                console.error("Error creating Tone.Synth:", error);
+                soundInitialized = false; synth = null; return false;
+            }
+        }
+        // updateVolume and toggleMute are no longer needed as controls are removed
+        // playNotificationSound remains the same
+        function playNotificationSound(isUnmuteSound = false) { if (!soundInitialized || !synth) { if (!isUnmuteSound) console.log("Sound not initialized. Attempting now..."); if (!initializeSound()) { if (!isUnmuteSound) console.log("Sound initialization failed. Cannot play sound yet."); return; } } if (isMuted) { if (!isUnmuteSound) console.log("Sound muted, skipping playback."); return; } if (Tone.context.state !== 'running') { if (!isUnmuteSound) console.log(`AudioContext not running (${Tone.context.state}). Cannot play sound.`); if (audioContextResumed) { Tone.start().catch(err => console.warn("Could not resume AudioContext:", err)); } return; } try { const note = isUnmuteSound ? "E5" : "C5"; synth.triggerAttackRelease(note, "8n", Tone.now() + 0.05); if (!isUnmuteSound) console.log("Played notification sound."); else console.log("Played unmute confirmation sound."); } catch (error) { console.error("Error playing sound:", error); } }
+        function getCurrentAESTTime() { const now = new Date(); try { const timeString = now.toLocaleTimeString('en-AU', { timeZone: 'Australia/Sydney', hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false }); const [hours, minutes, seconds] = timeString.split(':').map(Number); return { hours, minutes, seconds }; } catch (error) { console.error("Error getting AEST time using Intl:", error); const utcHours = now.getUTCHours(); const month = now.getUTCMonth(); const isAEDT = (month > 8 || month < 3); const offset = isAEDT ? 11 : 10; const aestHours = (utcHours + offset) % 24; const minutes = now.getUTCMinutes(); const seconds = now.getUTCSeconds(); console.warn(`Falling back to manual UTC+${offset} calculation.`); return { hours: aestHours, minutes, seconds }; } }
+
+        // --- Create Schedule Item Element (No changes needed) ---
+        function createScheduleElement(itemData) {
+            const { item, index, status } = itemData;
+            const itemDiv = document.createElement('div');
+            itemDiv.classList.add('schedule-item');
+            itemDiv.id = `schedule-item-${index}`;
+            let checkmark = '';
+            switch (status) {
+                case 'past': itemDiv.classList.add('past'); checkmark = '<span class="checkmark">✔</span>'; break;
+                case 'current': itemDiv.classList.add('current'); break;
+                case 'future': default: itemDiv.classList.add('future'); break;
+            }
+            itemDiv.innerHTML = `
+                <div class="time-stacked-col">
+                    <span>${item.aest} <span class="timezone-label">(AEST)</span></span>
+                    <span>${item.kst} <span class="timezone-label">(KST)</span></span>
+                </div>
+                <div class="activity-details-col">
+                    <span class="activity-ko">${checkmark}${item.ko}</span>
+                    <span class="activity-en">${item.en}</span>
+                </div>`;
+            return itemDiv;
+        }
+
+
+        // --- Update Schedule Display (Uses config object) ---
+        function updateSchedule() {
+             if (!scheduleContainer || scheduleLength === 0) {
+                 console.error("Schedule container not found or schedule data empty.");
+                 scheduleContainer.innerHTML = '<div class="text-center text-gray-500 p-4">Error loading schedule.</div>';
+                 return;
+             }
+
+            const { hours, minutes } = getCurrentAESTTime();
+            const currentTotalMinutes = hours * 60 + minutes;
+            let activityChanged = false;
+
+            // Find current activity index
+            let newCurrentIndex = -1;
+            for (let i = 0; i < scheduleLength; i++) { const item = scheduleData[i]; const start = item.startMinutesAEST; const end = item.endMinutesAEST === 0 ? 1440 : item.endMinutesAEST; if (start < end) { if (currentTotalMinutes >= start && currentTotalMinutes < end) { newCurrentIndex = i; break; } } else { if (currentTotalMinutes >= start || currentTotalMinutes < end) { newCurrentIndex = i; break; } } } if (newCurrentIndex === -1 && currentTotalMinutes === 0 && scheduleData[0]?.startMinutesAEST === 0) { newCurrentIndex = 0; }
+
+            // Play sound on activity change
+            if (newCurrentIndex !== currentActivityIndex) {
+                activityChanged = true;
+                if (currentActivityIndex !== -1) { console.log(`Activity changed from index ${currentActivityIndex} to ${newCurrentIndex}`); playNotificationSound(); } else { console.log(`Initial activity index set to ${newCurrentIndex}`); }
+                currentActivityIndex = newCurrentIndex;
+            }
+
+            // --- Read display settings FROM CONFIG OBJECT ---
+            const currentLinesBefore = config.linesBefore;
+            const currentLinesAfter = config.linesAfter;
+
+            // Calculate items to display with status
+            const itemsToDisplay = [];
+            const displayedIndices = new Set();
+
+            if (currentActivityIndex !== -1) {
+                // Add "before" items
+                for (let i = currentLinesBefore; i >= 1; i--) {
+                    const index = (currentActivityIndex - i + scheduleLength) % scheduleLength;
+                    if (!displayedIndices.has(index)) { itemsToDisplay.push({ item: scheduleData[index], index: index, status: 'past' }); displayedIndices.add(index); }
+                }
+                // Add current item
+                 if (!displayedIndices.has(currentActivityIndex)) { itemsToDisplay.push({ item: scheduleData[currentActivityIndex], index: currentActivityIndex, status: 'current' }); displayedIndices.add(currentActivityIndex); }
+                // Add "after" items
+                for (let i = 1; i <= currentLinesAfter; i++) {
+                    const index = (currentActivityIndex + i) % scheduleLength;
+                     if (!displayedIndices.has(index)) { itemsToDisplay.push({ item: scheduleData[index], index: index, status: 'future' }); displayedIndices.add(index); }
+                }
+                 console.debug(`UpdateSchedule - CurrentIdx: ${currentActivityIndex}, Before: ${currentLinesBefore}, After: ${currentLinesAfter}, Items:`, itemsToDisplay.map(d => `(${d.index}:${d.status})`).join(', '));
+            } else {
+                // If no current activity, show first few items as 'future'
+                for (let i = 0; i < Math.min(currentLinesAfter + 1, scheduleLength); i++) {
+                     if (!displayedIndices.has(i)) { itemsToDisplay.push({ item: scheduleData[i], index: i, status: 'future' }); displayedIndices.add(i); }
+                }
+                 console.debug(`UpdateSchedule - No current activity, showing first ${itemsToDisplay.length} items.`);
+            }
+
+            // Render the calculated items
+            scheduleContainer.innerHTML = '';
+            if (itemsToDisplay.length === 0 && scheduleLength > 0) {
+                 scheduleContainer.innerHTML = '<div class="text-center text-gray-500 p-4">표시할 항목이 없습니다.</div>';
+            } else {
+                itemsToDisplay.forEach(itemData => { scheduleContainer.appendChild(createScheduleElement(itemData)); });
+            }
+
+            // Add message if no current activity
+             if (currentActivityIndex === -1 && itemsToDisplay.length > 0) {
+                 const infoDiv = document.createElement('div');
+                 infoDiv.className = 'text-center text-orange-600 text-xs p-2';
+                 infoDiv.textContent = '현재 진행 중인 활동이 없습니다.';
+                 scheduleContainer.insertAdjacentElement('afterbegin', infoDiv);
+             }
+        }
+
+        // --- REMOVED Event Listeners for controls ---
+
+        // --- Initial Setup and Update Loop ---
+        applyConfiguration(); // Apply URL parameters or defaults
+
+        if (scheduleContainer) {
+             updateSchedule(); // Initial render
+        } else {
+             console.error("Schedule container not found for initial update.");
+        }
+
+        const updateInterval = setInterval(updateSchedule, 5000); // Update every 5 seconds
+
+        // --- Audio Context Handling ---
+         function handleUserInteraction() {
+             // (No changes needed here)
+             if (typeof Tone === 'undefined') return; if (Tone.context.state !== 'running') { console.log("User interaction detected, attempting to start/resume AudioContext..."); Tone.start().then(() => { console.log("AudioContext started/resumed successfully via user interaction."); audioContextResumed = true; if (!soundInitialized) { initializeSound(); } if (synth && synth.volume) { synth.volume.value = isMuted ? -Infinity : currentVolume; } updateSchedule(); }).catch(err => { console.error("Error starting/resuming AudioContext on interaction:", err); }).finally(() => { document.body.removeEventListener('click', handleUserInteraction); document.body.removeEventListener('touchstart', handleUserInteraction); }); } else if (!soundInitialized) { console.log("AudioContext running, attempting to initialize sound now."); initializeSound(); document.body.removeEventListener('click', handleUserInteraction); document.body.removeEventListener('touchstart', handleUserInteraction); } else { document.body.removeEventListener('click', handleUserInteraction); document.body.removeEventListener('touchstart', handleUserInteraction); }
+         }
+        document.body.addEventListener('click', handleUserInteraction);
+        document.body.addEventListener('touchstart', handleUserInteraction);
+
+        window.addEventListener('load', () => {
+             console.log("Window loaded.");
+             // Sound initialization now happens after config is applied
+             // applyConfiguration(); // Apply config first
+             initializeSound(); // Then initialize sound with correct volume/mute
+        });
+
+    </script>
+
+</body>
+</html>
