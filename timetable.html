@@ -10,98 +10,77 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
     <style>
-        /* --- MODIFIED: Removed outer padding --- */
+        /* --- CSS Styles (Unchanged from previous version) --- */
         body {
             font-family: 'Inter', sans-serif;
-            color: #1a202c; /* Dark gray text */
-            padding: 0; /* Removed body padding */
-            font-size: 0.9rem; /* Base font size */
-            text-shadow: 0 0 2px rgba(255, 255, 255, 0.5); /* Subtle text shadow for readability */
-            /* Background color will be set by JavaScript based on config */
+            color: #1a202c;
+            padding: 0;
+            font-size: 0.9rem;
+            text-shadow: 0 0 2px rgba(255, 255, 255, 0.5);
         }
-
-        /* --- MODIFIED: Centered and constrained the container --- */
         #schedule-container {
-            width: 100%; /* Takes full width available */
-            display: flex; /* Enable flexbox layout */
-            flex-direction: column; /* Stack items vertically */
-            align-items: center; /* Center items horizontally */
-            /* No padding needed here, handled by item margins/body */
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
         }
-
-        /* --- MODIFIED: Fixed maximum box width and reduced padding/margin --- */
         .schedule-item {
-            border-radius: 0.375rem; /* Rounded corners */
-            padding: 0.3rem 0.5rem; /* Reduced padding for compactness */
-            margin: 0.25rem 0; /* Vertical margin, centered horizontally by container */
-            transition: background-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out; /* Smooth transitions */
-            background-color: rgba(255, 255, 255, 0.9); /* Semi-transparent white background */
-            box-shadow: 0 1px 3px rgba(0,0,0,0.1); /* Subtle shadow */
-            display: flex; /* Use flexbox for internal layout (time/activity) */
-            align-items: center; /* Vertically align content */
-            gap: 0.5rem; /* Space between time and activity columns */
-            max-width: 360px; /* Maximum width constraint */
-            width: 100%; /* Allow shrinking below max-width */
+            border-radius: 0.375rem;
+            padding: 0.3rem 0.5rem;
+            margin: 0.25rem 0;
+            transition: background-color 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+            background-color: rgba(255, 255, 255, 0.9);
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            max-width: 360px;
+            width: 100%;
         }
-
-        /* Styling for the current activity */
         .schedule-item.current {
-            background-color: rgba(224, 242, 254, 0.95); /* Light blue background */
-            border-left: 4px solid #38bdf8; /* Blue left border highlight */
-            box-shadow: 0 2px 5px rgba(0,0,0,0.15); /* Slightly stronger shadow */
+            background-color: rgba(224, 242, 254, 0.95);
+            border-left: 4px solid #38bdf8;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.15);
         }
-
-        /* Styling for past activities */
         .schedule-item.past {
-            opacity: 0.7; /* Fade out past items */
-             background-color: rgba(248, 250, 252, 0.85); /* Slightly off-white */
+            opacity: 0.7;
+             background-color: rgba(248, 250, 252, 0.85);
         }
         .schedule-item.past .activity-ko,
         .schedule-item.past .activity-en {
-            text-decoration: line-through; /* Strike through text */
-            color: #94a3b8; /* Gray out text */
+            text-decoration: line-through;
+            color: #94a3b8;
         }
-
-        /* Checkmark for past items */
         .checkmark {
-            color: #22c55e; /* Green checkmark */
+            color: #22c55e;
             font-weight: bold;
             margin-right: 0.25rem;
-            display: inline-block; /* Keep inline */
+            display: inline-block;
         }
-
-        /* --- MODIFIED: Eliminated dead space in the time column --- */
         .time-stacked-col {
-            flex: 0 0 80px; /* Fixed width of 80px, prevents growing/shrinking */
-            text-align: center; /* Center time text */
-            font-size: 0.8rem; /* Smaller font size for time */
-            color: #4a5568; /* Medium gray text */
-            line-height: 1.2; /* Adjust line spacing */
+            flex: 0 0 80px;
+            text-align: center;
+            font-size: 0.8rem;
+            color: #4a5568;
+            line-height: 1.2;
         }
-        .time-stacked-col span { display: block; } /* Stack time zones */
-        .time-stacked-col .timezone-label { font-size: 0.7rem; color: #718096; } /* Smaller timezone label */
-
-        /* --- MODIFIED: Allowed the activity column to fill remaining space --- */
+        .time-stacked-col span { display: block; }
+        .time-stacked-col .timezone-label { font-size: 0.7rem; color: #718096; }
         .activity-details-col {
-             flex: 1; /* Takes up remaining space in the flex container */
-             text-align: center; /* Center the text within this column */
-             /* No flex-basis needed when using flex: 1 */
+             flex: 1;
+             text-align: center;
         }
-
-        /* Korean activity text */
         .activity-ko {
-            font-weight: 500; /* Medium font weight */
-            font-size: 0.9rem; /* Base font size */
-            display: block; /* Stack above English text */
-            margin-bottom: 0.1rem; /* Small space below */
-            color: #1e293b; /* Darker gray text */
+            font-weight: 500;
+            font-size: 0.9rem;
+            display: block;
+            margin-bottom: 0.1rem;
+            color: #1e293b;
         }
-
-        /* English activity text */
         .activity-en {
-            font-size: 0.8rem; /* Smaller font size */
-            color: #64748b; /* Lighter gray text */
-            display: block; /* Ensure it's on its own line */
+            font-size: 0.8rem;
+            color: #64748b;
+            display: block;
         }
     </style>
 </head>
@@ -111,17 +90,65 @@
     </div>
 
     <script>
-        // --- Schedule Data (Example - Remains unchanged) ---
+        // --- Schedule Data ---
+        // IMPORTANT: Ensure this array contains the FULL 24-hour schedule without gaps.
+        // The issue shown in the image might be caused by missing data here (e.g., after 06:00).
         const scheduleData = [
-            // (Your existing schedule data goes here...)
-            { aest: '00:00-00:50', kst: '23:00-23:50', ko: '집중 (50분)', en: 'Focus (50m)', startMinutesAEST: 0, endMinutesAEST: 50 }, { aest: '00:50-01:00', kst: '23:50-00:00', ko: '휴식 (10분)', en: 'Break (10m)', startMinutesAEST: 50, endMinutesAEST: 60 }, { aest: '01:00-01:50', kst: '00:00-00:50', ko: '집중 (50분)', en: 'Focus (50m)', startMinutesAEST: 60, endMinutesAEST: 110 }, { aest: '01:50-02:00', kst: '00:50-01:00', ko: '휴식 (10분)', en: 'Break (10m)', startMinutesAEST: 110, endMinutesAEST: 120 }, { aest: '02:00-02:50', kst: '01:00-01:50', ko: '집중 (50분)', en: 'Focus (50m)', startMinutesAEST: 120, endMinutesAEST: 170 }, { aest: '02:50-03:00', kst: '01:50-02:00', ko: '휴식 (10분)', en: 'Break (10m)', startMinutesAEST: 170, endMinutesAEST: 180 }, { aest: '03:00-03:50', kst: '02:00-02:50', ko: '집중 (50분)', en: 'Focus (50m)', startMinutesAEST: 180, endMinutesAEST: 230 }, { aest: '03:50-04:00', kst: '02:50-03:00', ko: '휴식 (10분)', en: 'Break (10m)', startMinutesAEST: 230, endMinutesAEST: 240 }, { aest: '04:00-05:00', kst: '03:00-04:00', ko: '긴 휴식 (60분)', en: 'Long Break (60m)', startMinutesAEST: 240, endMinutesAEST: 300 }, { aest: '05:00-05:50', kst: '04:00-04:50', ko: '집중 (50분)', en: 'Focus (50m)', startMinutesAEST: 300, endMinutesAEST: 350 }, { aest: '05:50-06:00', kst: '04:50-05:00', ko: '휴식 (10분)', en: 'Break (10m)', startMinutesAEST: 350, endMinutesAEST: 360 }, // ... rest of your data
+            { aest: '00:00-00:50', kst: '23:00-23:50', ko: '집중 (50분)', en: 'Focus (50m)', startMinutesAEST: 0, endMinutesAEST: 50 },
+            { aest: '00:50-01:00', kst: '23:50-00:00', ko: '휴식 (10분)', en: 'Break (10m)', startMinutesAEST: 50, endMinutesAEST: 60 },
+            { aest: '01:00-01:50', kst: '00:00-00:50', ko: '집중 (50분)', en: 'Focus (50m)', startMinutesAEST: 60, endMinutesAEST: 110 },
+            { aest: '01:50-02:00', kst: '00:50-01:00', ko: '휴식 (10분)', en: 'Break (10m)', startMinutesAEST: 110, endMinutesAEST: 120 },
+            { aest: '02:00-02:50', kst: '01:00-01:50', ko: '집중 (50분)', en: 'Focus (50m)', startMinutesAEST: 120, endMinutesAEST: 170 },
+            { aest: '02:50-03:00', kst: '01:50-02:00', ko: '휴식 (10분)', en: 'Break (10m)', startMinutesAEST: 170, endMinutesAEST: 180 },
+            { aest: '03:00-03:50', kst: '02:00-02:50', ko: '집중 (50분)', en: 'Focus (50m)', startMinutesAEST: 180, endMinutesAEST: 230 },
+            { aest: '03:50-04:00', kst: '02:50-03:00', ko: '휴식 (10분)', en: 'Break (10m)', startMinutesAEST: 230, endMinutesAEST: 240 },
+            { aest: '04:00-05:00', kst: '03:00-04:00', ko: '긴 휴식 (60분)', en: 'Long Break (60m)', startMinutesAEST: 240, endMinutesAEST: 300 },
+            { aest: '05:00-05:50', kst: '04:00-04:50', ko: '집중 (50분)', en: 'Focus (50m)', startMinutesAEST: 300, endMinutesAEST: 350 },
+            { aest: '05:50-06:00', kst: '04:50-05:00', ko: '휴식 (10분)', en: 'Break (10m)', startMinutesAEST: 350, endMinutesAEST: 360 },
+            // --- CHECK DATA CONTINUES HERE ---
+            { aest: '06:00-06:50', kst: '05:00-05:50', ko: '집중 (50분)', en: 'Focus (50m)', startMinutesAEST: 360, endMinutesAEST: 410 },
+            { aest: '06:50-07:00', kst: '05:50-06:00', ko: '휴식 (10분)', en: 'Break (10m)', startMinutesAEST: 410, endMinutesAEST: 420 },
+            { aest: '07:00-07:50', kst: '06:00-06:50', ko: '집중 (50분)', en: 'Focus (50m)', startMinutesAEST: 420, endMinutesAEST: 470 },
+            { aest: '07:50-08:00', kst: '06:50-07:00', ko: '휴식 (10분)', en: 'Break (10m)', startMinutesAEST: 470, endMinutesAEST: 480 },
+            { aest: '08:00-08:50', kst: '07:00-07:50', ko: '집중 (50분)', en: 'Focus (50m)', startMinutesAEST: 480, endMinutesAEST: 530 },
+            { aest: '08:50-09:00', kst: '07:50-08:00', ko: '휴식 (10분)', en: 'Break (10m)', startMinutesAEST: 530, endMinutesAEST: 540 },
+            { aest: '09:00-09:30', kst: '08:00-08:30', ko: '아침 식사 (30분)', en: 'Breakfast (30m)', startMinutesAEST: 540, endMinutesAEST: 570 },
+            { aest: '09:30-10:00', kst: '08:30-09:00', ko: '휴식 또는 가벼운 활동 (30분)', en: 'Break or Light Activity (30m)', startMinutesAEST: 570, endMinutesAEST: 600 },
+            { aest: '10:00-10:50', kst: '09:00-09:50', ko: '집중 (50분)', en: 'Focus (50m)', startMinutesAEST: 600, endMinutesAEST: 650 },
+            { aest: '10:50-11:00', kst: '09:50-10:00', ko: '휴식 (10분)', en: 'Break (10m)', startMinutesAEST: 650, endMinutesAEST: 660 },
+            { aest: '11:00-11:50', kst: '10:00-10:50', ko: '집중 (50분)', en: 'Focus (50m)', startMinutesAEST: 660, endMinutesAEST: 710 },
+            { aest: '11:50-12:00', kst: '10:50-11:00', ko: '휴식 (10분)', en: 'Break (10m)', startMinutesAEST: 710, endMinutesAEST: 720 },
+            { aest: '12:00-12:50', kst: '11:00-11:50', ko: '집중 (50분)', en: 'Focus (50m)', startMinutesAEST: 720, endMinutesAEST: 770 },
+            { aest: '12:50-13:00', kst: '11:50-12:00', ko: '휴식 (10분)', en: 'Break (10m)', startMinutesAEST: 770, endMinutesAEST: 780 },
+            { aest: '13:00-13:50', kst: '12:00-12:50', ko: '집중 (50분)', en: 'Focus (50m)', startMinutesAEST: 780, endMinutesAEST: 830 },
+            { aest: '13:50-14:00', kst: '12:50-13:00', ko: '휴식 (10분)', en: 'Break (10m)', startMinutesAEST: 830, endMinutesAEST: 840 },
+            { aest: '14:00-14:30', kst: '13:00-13:30', ko: '점심 식사 (30분)', en: 'Lunch (30m)', startMinutesAEST: 840, endMinutesAEST: 870 },
+            { aest: '14:30-15:00', kst: '13:30-14:00', ko: '휴식 또는 가벼운 활동 (30분)', en: 'Break or Light Activity (30m)', startMinutesAEST: 870, endMinutesAEST: 900 },
+            { aest: '15:00-15:50', kst: '14:00-14:50', ko: '집중 (50분)', en: 'Focus (50m)', startMinutesAEST: 900, endMinutesAEST: 950 },
+            { aest: '15:50-16:00', kst: '14:50-15:00', ko: '휴식 (10분)', en: 'Break (10m)', startMinutesAEST: 950, endMinutesAEST: 960 },
+            { aest: '16:00-16:50', kst: '15:00-15:50', ko: '집중 (50분)', en: 'Focus (50m)', startMinutesAEST: 960, endMinutesAEST: 1010 },
+            { aest: '16:50-17:00', kst: '15:50-16:00', ko: '휴식 (10분)', en: 'Break (10m)', startMinutesAEST: 1010, endMinutesAEST: 1020 },
+            { aest: '17:00-17:50', kst: '16:00-16:50', ko: '집중 (50분)', en: 'Focus (50m)', startMinutesAEST: 1020, endMinutesAEST: 1070 },
+            { aest: '17:50-18:00', kst: '16:50-17:00', ko: '휴식 (10분)', en: 'Break (10m)', startMinutesAEST: 1070, endMinutesAEST: 1080 },
+            { aest: '18:00-18:50', kst: '17:00-17:50', ko: '집중 (50분)', en: 'Focus (50m)', startMinutesAEST: 1080, endMinutesAEST: 1130 },
+            { aest: '18:50-19:00', kst: '17:50-18:00', ko: '휴식 (10분)', en: 'Break (10m)', startMinutesAEST: 1130, endMinutesAEST: 1140 },
+            { aest: '19:00-19:30', kst: '18:00-18:30', ko: '저녁 식사 (30분)', en: 'Dinner (30m)', startMinutesAEST: 1140, endMinutesAEST: 1170 },
+            { aest: '19:30-20:00', kst: '18:30-19:00', ko: '휴식 또는 가벼운 활동 (30분)', en: 'Break or Light Activity (30m)', startMinutesAEST: 1170, endMinutesAEST: 1200 },
+            { aest: '20:00-20:50', kst: '19:00-19:50', ko: '집중 (50분)', en: 'Focus (50m)', startMinutesAEST: 1200, endMinutesAEST: 1250 },
+            { aest: '20:50-21:00', kst: '19:50-20:00', ko: '휴식 (10분)', en: 'Break (10m)', startMinutesAEST: 1250, endMinutesAEST: 1260 },
+            { aest: '21:00-21:50', kst: '20:00-20:50', ko: '집중 (50분)', en: 'Focus (50m)', startMinutesAEST: 1260, endMinutesAEST: 1310 },
+            { aest: '21:50-22:00', kst: '20:50-21:00', ko: '휴식 (10분)', en: 'Break (10m)', startMinutesAEST: 1310, endMinutesAEST: 1320 },
+            { aest: '22:00-22:50', kst: '21:00-21:50', ko: '집중 (50분)', en: 'Focus (50m)', startMinutesAEST: 1320, endMinutesAEST: 1370 },
+            { aest: '22:50-23:00', kst: '21:50-22:00', ko: '휴식 (10분)', en: 'Break (10m)', startMinutesAEST: 1370, endMinutesAEST: 1380 },
+            { aest: '23:00-23:50', kst: '22:00-22:50', ko: '집중 (50분)', en: 'Focus (50m)', startMinutesAEST: 1380, endMinutesAEST: 1430 },
+            { aest: '23:50-00:00', kst: '22:50-23:00', ko: '휴식 (10분)', en: 'Break (10m)', startMinutesAEST: 1430, endMinutesAEST: 1440 }, // Ends at 24:00 (1440 minutes)
         ];
         const scheduleLength = scheduleData.length;
 
         // --- DOM Elements ---
         const scheduleContainer = document.getElementById('schedule-container');
 
-        // --- State Variables (Unchanged) ---
+        // --- State Variables ---
         let currentActivityIndex = -1;
         let synth = null;
         let isMuted = false;
@@ -129,10 +156,10 @@
         let soundInitialized = false;
         let audioContextResumed = false;
 
-        // --- Configuration (Defaults - Unchanged) ---
+        // --- Configuration (Defaults) ---
         let config = { linesBefore: 3, linesAfter: 3, volume: -10, muted: false, bgColor: 'f0f4f8', bgAlpha: 1.0 };
 
-        // --- Helper Functions (getUrlParams, hexToRgba - Unchanged) ---
+        // --- Helper Functions (Unchanged: getUrlParams, hexToRgba) ---
         function getUrlParams() { const params = new URLSearchParams(window.location.search); const urlConfig = {}; const linesBeforeParam = params.get('linesBefore'); if (linesBeforeParam !== null) { const val = parseInt(linesBeforeParam, 10); if (!isNaN(val) && val >= 0) urlConfig.linesBefore = val; } const linesAfterParam = params.get('linesAfter'); if (linesAfterParam !== null) { const val = parseInt(linesAfterParam, 10); if (!isNaN(val) && val >= 0) urlConfig.linesAfter = val; } const volumeParam = params.get('volume'); if (volumeParam !== null) { const val = parseFloat(volumeParam); if (!isNaN(val)) urlConfig.volume = val; } const mutedParam = params.get('muted'); if (mutedParam !== null) { urlConfig.muted = mutedParam.toLowerCase() === 'true'; } const bgColorParam = params.get('bgColor'); if (bgColorParam !== null && /^[0-9a-fA-F]{6}$/.test(bgColorParam)) { urlConfig.bgColor = bgColorParam; } else if (bgColorParam !== null && /^[0-9a-fA-F]{3}$/.test(bgColorParam)) { urlConfig.bgColor = bgColorParam.split('').map(c => c+c).join(''); } const bgAlphaParam = params.get('bgAlpha'); if (bgAlphaParam !== null) { const val = parseFloat(bgAlphaParam); if (!isNaN(val) && val >= 0 && val <= 1) { urlConfig.bgAlpha = val; } } return urlConfig; }
         function hexToRgba(hex, alpha) { hex = hex.replace(/^#/, ''); if (hex.length === 3) { hex = hex.split('').map(c => c + c).join(''); } if (hex.length !== 6) { console.warn(`Invalid hex color: #${hex}. Falling back.`); return `rgba(240, 244, 248, ${alpha})`; } const bigint = parseInt(hex, 16); const r = (bigint >> 16) & 255; const g = (bigint >> 8) & 255; const b = bigint & 255; alpha = Math.max(0, Math.min(1, alpha)); return `rgba(${r}, ${g}, ${b}, ${alpha})`; }
 
@@ -144,52 +171,154 @@
         function playNotificationSound(isUnmuteSound = false) { if (!soundInitialized || !synth) { if (!isUnmuteSound) console.log("Sound not initialized. Attempting now..."); if (!initializeSound()) { if (!isUnmuteSound) console.log("Sound initialization failed. Cannot play sound yet."); return; } } if (isMuted) { if (!isUnmuteSound) console.log("Sound muted, skipping playback."); return; } if (Tone.context.state !== 'running') { if (!isUnmuteSound) console.log(`AudioContext not running (${Tone.context.state}). Cannot play sound.`); if (audioContextResumed) { Tone.start().catch(err => console.warn("Could not resume AudioContext:", err)); } return; } try { const note = isUnmuteSound ? "E5" : "C5"; synth.triggerAttackRelease(note, "8n", Tone.now() + 0.05); if (!isUnmuteSound) console.log("Played notification sound."); else console.log("Played unmute confirmation sound."); } catch (error) { console.error("Error playing sound:", error); } }
         function getCurrentAESTTime() { const now = new Date(); try { const timeString = now.toLocaleTimeString('en-AU', { timeZone: 'Australia/Sydney', hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false }); const [hours, minutes, seconds] = timeString.split(':').map(Number); return { hours, minutes, seconds }; } catch (error) { console.error("Error getting AEST time using Intl:", error); const utcHours = now.getUTCHours(); const month = now.getUTCMonth(); const isAEDT = (month > 8 || month < 3); const offset = isAEDT ? 11 : 10; const aestHours = (utcHours + offset) % 24; const minutes = now.getUTCMinutes(); const seconds = now.getUTCSeconds(); console.warn(`Falling back to manual UTC+${offset} calculation.`); return { hours: aestHours, minutes, seconds }; } }
 
-        // --- Create Schedule Item Element (Unchanged, structure relies on new CSS) ---
+        // --- Create Schedule Item Element (Unchanged) ---
         function createScheduleElement(itemData) {
             const { item, index, status } = itemData;
             const itemDiv = document.createElement('div');
-            itemDiv.classList.add('schedule-item'); // Uses the updated .schedule-item style
+            itemDiv.classList.add('schedule-item');
             itemDiv.id = `schedule-item-${index}`;
             let checkmark = '';
+            // Apply classes based on the calculated status
             switch (status) {
-                case 'past': itemDiv.classList.add('past'); checkmark = '<span class="checkmark">✔</span>'; break;
-                case 'current': itemDiv.classList.add('current'); break;
-                case 'future': default: itemDiv.classList.add('future'); break;
+                case 'past':
+                    itemDiv.classList.add('past');
+                    checkmark = '<span class="checkmark">✔</span>';
+                    break;
+                case 'current':
+                    itemDiv.classList.add('current');
+                    break;
+                case 'future':
+                default:
+                    // No extra class needed for future, but could add one if desired
+                    // itemDiv.classList.add('future');
+                    break;
             }
-            // Inner HTML structure remains the same, but layout is controlled by the updated CSS rules
             itemDiv.innerHTML = `
-                <div class="time-stacked-col"> <span>${item.aest} <span class="timezone-label">(AEST)</span></span>
+                <div class="time-stacked-col">
+                    <span>${item.aest} <span class="timezone-label">(AEST)</span></span>
                     <span>${item.kst} <span class="timezone-label">(KST)</span></span>
                 </div>
-                <div class="activity-details-col"> <span class="activity-ko">${checkmark}${item.ko}</span>
+                <div class="activity-details-col">
+                    <span class="activity-ko">${checkmark}${item.ko}</span>
                     <span class="activity-en">${item.en}</span>
                 </div>`;
             return itemDiv;
         }
 
-        // --- Update Schedule Display (Unchanged logic) ---
+        // --- MODIFIED: Helper to determine item status relative to current ---
+        function getItemStatus(itemIndex, currentIndex, scheduleLen) {
+            // If no item is current (e.g., at the exact transition), treat everything as future? Or base on time?
+            // Let's stick to index comparison for simplicity with before/after display logic.
+            // If updateSchedule determines no current index, it handles status separately.
+             if (currentIndex === -1) {
+                 // This case is handled in updateSchedule's 'else' block now.
+                 // We could compare item time to current time here, but index logic is simpler for display.
+                 return 'future'; // Default assumption if called unexpectedly
+             }
+            if (itemIndex === currentIndex) return 'current';
+
+            // Calculate shortest distance forward and backward in the circular array
+            const forwardDistance = (itemIndex - currentIndex + scheduleLen) % scheduleLen;
+            const backwardDistance = (currentIndex - itemIndex + scheduleLen) % scheduleLen;
+
+            // Determine status based on the shortest path
+            if (backwardDistance < forwardDistance) {
+                return 'past';
+            } else {
+                // Includes the case where forwardDistance === backwardDistance (item is exactly opposite)
+                return 'future';
+            }
+        }
+
+
+        // --- MODIFIED: Update Schedule Display (Improved Status Assignment) ---
         function updateSchedule() {
              if (!scheduleContainer || scheduleLength === 0) { console.error("Schedule container not found or schedule data empty."); scheduleContainer.innerHTML = '<div class="text-center text-gray-500 p-4">Error loading schedule.</div>'; return; }
+
+            // Find current activity index (logic unchanged)
             const { hours, minutes } = getCurrentAESTTime();
             const currentTotalMinutes = hours * 60 + minutes;
             let activityChanged = false;
             let newCurrentIndex = -1;
             for (let i = 0; i < scheduleLength; i++) { const item = scheduleData[i]; const start = item.startMinutesAEST; const end = item.endMinutesAEST === 0 ? 1440 : item.endMinutesAEST; if (start < end) { if (currentTotalMinutes >= start && currentTotalMinutes < end) { newCurrentIndex = i; break; } } else { if (currentTotalMinutes >= start || currentTotalMinutes < end) { newCurrentIndex = i; break; } } } if (newCurrentIndex === -1 && currentTotalMinutes === 0 && scheduleData[0]?.startMinutesAEST === 0) { newCurrentIndex = 0; }
+
+            // Check if activity changed (logic unchanged)
             if (newCurrentIndex !== currentActivityIndex) { activityChanged = true; if (currentActivityIndex !== -1) { console.log(`Activity changed from index ${currentActivityIndex} to ${newCurrentIndex}`); playNotificationSound(); } else { console.log(`Initial activity index set to ${newCurrentIndex}`); } currentActivityIndex = newCurrentIndex; }
-            const currentLinesBefore = config.linesBefore; const currentLinesAfter = config.linesAfter;
-            const itemsToDisplay = []; const displayedIndices = new Set();
+
+            // Determine items to display (logic unchanged for index calculation)
+            const currentLinesBefore = config.linesBefore;
+            const currentLinesAfter = config.linesAfter;
+            const itemsToDisplay = [];
+            const displayedIndices = new Set(); // Keep track to avoid duplicates
+
             if (currentActivityIndex !== -1) {
-                for (let i = currentLinesBefore; i >= 1; i--) { const index = (currentActivityIndex - i + scheduleLength) % scheduleLength; if (!displayedIndices.has(index)) { itemsToDisplay.push({ item: scheduleData[index], index: index, status: 'past' }); displayedIndices.add(index); } }
-                 if (!displayedIndices.has(currentActivityIndex)) { itemsToDisplay.push({ item: scheduleData[currentActivityIndex], index: currentActivityIndex, status: 'current' }); displayedIndices.add(currentActivityIndex); }
-                for (let i = 1; i <= currentLinesAfter; i++) { const index = (currentActivityIndex + i) % scheduleLength; if (!displayedIndices.has(index)) { itemsToDisplay.push({ item: scheduleData[index], index: index, status: 'future' }); displayedIndices.add(index); } }
+                // Add items BEFORE current
+                for (let i = currentLinesBefore; i >= 1; i--) {
+                    const index = (currentActivityIndex - i + scheduleLength) % scheduleLength;
+                    if (!displayedIndices.has(index)) {
+                        // MODIFIED: Use helper function to determine correct status
+                        const status = getItemStatus(index, currentActivityIndex, scheduleLength);
+                        itemsToDisplay.push({ item: scheduleData[index], index: index, status: status });
+                        displayedIndices.add(index);
+                    }
+                }
+                // Add CURRENT item
+                 if (!displayedIndices.has(currentActivityIndex)) {
+                     // Status is always 'current'
+                     itemsToDisplay.push({ item: scheduleData[currentActivityIndex], index: currentActivityIndex, status: 'current' });
+                     displayedIndices.add(currentActivityIndex);
+                 }
+                // Add items AFTER current
+                for (let i = 1; i <= currentLinesAfter; i++) {
+                    const index = (currentActivityIndex + i) % scheduleLength;
+                    if (!displayedIndices.has(index)) {
+                         // MODIFIED: Use helper function to determine correct status
+                        const status = getItemStatus(index, currentActivityIndex, scheduleLength);
+                        itemsToDisplay.push({ item: scheduleData[index], index: index, status: status });
+                        displayedIndices.add(index);
+                    }
+                }
                  console.debug(`UpdateSchedule - CurrentIdx: ${currentActivityIndex}, Before: ${currentLinesBefore}, After: ${currentLinesAfter}, Items:`, itemsToDisplay.map(d => `(${d.index}:${d.status})`).join(', '));
+
             } else {
-                for (let i = 0; i < Math.min(currentLinesAfter + 1, scheduleLength); i++) { if (!displayedIndices.has(i)) { itemsToDisplay.push({ item: scheduleData[i], index: i, status: 'future' }); displayedIndices.add(i); } }
-                 console.debug(`UpdateSchedule - No current activity, showing first ${itemsToDisplay.length} items.`);
+                // Handle case where no activity is currently active (e.g., midnight gap if data doesn't cover it)
+                // Display the first few items as 'future'
+                 console.debug(`UpdateSchedule - No current activity found.`);
+                 const numToShow = currentLinesBefore + 1 + currentLinesAfter; // Show total number of configured lines
+                 for (let i = 0; i < Math.min(numToShow, scheduleLength); i++) {
+                     // Check if index is valid and not already added (though set should be empty here)
+                     if (i < scheduleLength && !displayedIndices.has(i)) {
+                         // Assign 'future' status as there's no 'current' reference point
+                         itemsToDisplay.push({ item: scheduleData[i], index: i, status: 'future' });
+                         displayedIndices.add(i);
+                     }
+                 }
             }
+
+            // Render the schedule items (logic unchanged)
             scheduleContainer.innerHTML = '';
-            if (itemsToDisplay.length === 0 && scheduleLength > 0) { scheduleContainer.innerHTML = '<div class="text-center text-gray-500 p-4">표시할 항목이 없습니다.</div>'; } else { itemsToDisplay.forEach(itemData => { scheduleContainer.appendChild(createScheduleElement(itemData)); }); }
-             if (currentActivityIndex === -1 && itemsToDisplay.length > 0) { const infoDiv = document.createElement('div'); infoDiv.className = 'text-center text-orange-600 text-xs p-2'; infoDiv.textContent = '현재 진행 중인 활동이 없습니다.'; scheduleContainer.insertAdjacentElement('afterbegin', infoDiv); }
+            if (itemsToDisplay.length === 0 && scheduleLength > 0) {
+                scheduleContainer.innerHTML = '<div class="text-center text-gray-500 p-4">표시할 항목이 없습니다.</div>';
+            } else {
+                // Sort items based on index to ensure absolute order? No, the loops add them in relative order.
+                // If the order IS wrong, it points to the index calculation or data.
+                itemsToDisplay.forEach(itemData => {
+                    scheduleContainer.appendChild(createScheduleElement(itemData));
+                });
+            }
+
+            // Add info message if no activity is current (logic unchanged)
+             if (currentActivityIndex === -1 && itemsToDisplay.length > 0) {
+                 const infoDiv = document.createElement('div');
+                 infoDiv.className = 'text-center text-orange-600 text-xs p-2';
+                 infoDiv.textContent = '현재 진행 중인 활동이 없습니다.';
+                 // Insert message before the first schedule item if container isn't empty
+                 if(scheduleContainer.firstChild) {
+                    scheduleContainer.insertBefore(infoDiv, scheduleContainer.firstChild);
+                 } else {
+                    scheduleContainer.appendChild(infoDiv);
+                 }
+             }
         }
 
         // --- Initial Setup and Update Loop (Unchanged) ---
