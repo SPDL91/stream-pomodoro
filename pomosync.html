@@ -1,0 +1,369 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Synced Stream Pomodoro</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link href="https://fonts.googleapis.com/css2?family=Comic+Neue:wght@700&family=Roboto+Mono:wght@500&display=swap" rel="stylesheet"/>
+  <style>
+    body {
+      font-family: 'Comic Neue', cursive;
+      background-color: #333333; /* Dark background, good for OBS */
+      color: #ffffff;
+      margin: 0;
+      padding: 0;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      overflow: hidden; /* Prevent scrollbars */
+      text-align: center;
+    }
+
+    #stack {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      box-sizing: border-box;
+      width: 100%;
+      max-width: 600px; /* Limit max width for very large screens */
+    }
+
+    #progress-container {
+      width: 90%; /* Responsive width */
+      max-width: 500px;
+      height: 20px;
+      background-color: #555555;
+      border-radius: 10px;
+      margin-bottom: 20px;
+      overflow: hidden;
+      border: 2px solid #444444;
+    }
+
+    #progress-value {
+      width: 0%;
+      height: 100%;
+      background-color: #4CAF50; /* Green progress */
+      border-radius: 8px 0 0 8px; /* Keep left radius if width > 0 */
+      transition: width 0.5s ease-in-out;
+    }
+    #progress-value.break {
+        background-color: #2196F3; /* Blue for breaks */
+    }
+    #progress-value.long-break {
+        background-color: #FFC107; /* Amber for long breaks */
+    }
+
+
+    #time-left {
+      font-family: 'Roboto Mono', monospace;
+      font-size: clamp(3rem, 15vw, 6rem); /* Responsive font size */
+      font-weight: 500;
+      margin: 0;
+      line-height: 1.1;
+    }
+
+    #timer-label {
+      font-size: clamp(1.5rem, 7vw, 2.5rem); /* Responsive font size */
+      font-weight: 700;
+      margin-top: 10px;
+      text-transform: uppercase;
+      letter-spacing: 2px;
+    }
+
+    /* Basic styling for when no activity is active */
+    .loading #time-left::before {
+        content: "--:--";
+    }
+    .loading #timer-label::before {
+        content: "Loading...";
+    }
+  </style>
+</head>
+<body class="loading">
+  <div id="stack">
+    <div id="progress-container"><div id="progress-value"></div></div>
+    <h1 id="time-left"></h1>
+    <h2 id="timer-label"></h2>
+  </div>
+
+  <script>
+    // DOM Elements
+    const timeLeftDisplay = document.getElementById('time-left');
+    const timerLabelDisplay = document.getElementById('timer-label');
+    const progressValue = document.getElementById('progress-value');
+    const bodyElement = document.body;
+
+    // Schedule Data (copied from timetable.html)
+    const scheduleData = [
+        { aest: '00:00-00:50', kst: '23:00-23:50', ko: '집중 (50분)', en: 'Focus (50m)', startMinutesAEST: 0, endMinutesAEST: 50 },
+        { aest: '00:50-01:00', kst: '23:50-00:00', ko: '휴식 (10분)', en: 'Break (10m)', startMinutesAEST: 50, endMinutesAEST: 60 },
+        { aest: '01:00-01:50', kst: '00:00-00:50', ko: '집중 (50분)', en: 'Focus (50m)', startMinutesAEST: 60, endMinutesAEST: 110 },
+        { aest: '01:50-02:00', kst: '00:50-01:00', ko: '휴식 (10분)', en: 'Break (10m)', startMinutesAEST: 110, endMinutesAEST: 120 },
+        { aest: '02:00-02:50', kst: '01:00-01:50', ko: '집중 (50분)', en: 'Focus (50m)', startMinutesAEST: 120, endMinutesAEST: 170 },
+        { aest: '02:50-03:00', kst: '01:50-02:00', ko: '휴식 (10분)', en: 'Break (10m)', startMinutesAEST: 170, endMinutesAEST: 180 },
+        { aest: '03:00-03:50', kst: '02:00-02:50', ko: '집중 (50분)', en: 'Focus (50m)', startMinutesAEST: 180, endMinutesAEST: 230 },
+        { aest: '03:50-04:00', kst: '02:50-03:00', ko: '휴식 (10분)', en: 'Break (10m)', startMinutesAEST: 230, endMinutesAEST: 240 },
+        { aest: '04:00-05:00', kst: '03:00-04:00', ko: '긴 휴식 (60분)', en: 'Long Break (60m)', startMinutesAEST: 240, endMinutesAEST: 300 },
+        { aest: '05:00-05:50', kst: '04:00-04:50', ko: '집중 (50분)', en: 'Focus (50m)', startMinutesAEST: 300, endMinutesAEST: 350 },
+        { aest: '05:50-06:00', kst: '04:50-05:00', ko: '휴식 (10분)', en: 'Break (10m)', startMinutesAEST: 350, endMinutesAEST: 360 },
+        { aest: '06:00-06:50', kst: '05:00-05:50', ko: '집중 (50분)', en: 'Focus (50m)', startMinutesAEST: 360, endMinutesAEST: 410 },
+        { aest: '06:50-07:00', kst: '05:50-06:00', ko: '휴식 (10분)', en: 'Break (10m)', startMinutesAEST: 410, endMinutesAEST: 420 },
+        { aest: '07:00-07:50', kst: '06:00-06:50', ko: '집중 (50분)', en: 'Focus (50m)', startMinutesAEST: 420, endMinutesAEST: 470 },
+        { aest: '07:50-08:00', kst: '06:50-07:00', ko: '휴식 (10분)', en: 'Break (10m)', startMinutesAEST: 470, endMinutesAEST: 480 },
+        { aest: '08:00-08:50', kst: '07:00-07:50', ko: '집중 (50분)', en: 'Focus (50m)', startMinutesAEST: 480, endMinutesAEST: 530 },
+        { aest: '08:50-09:00', kst: '07:50-08:00', ko: '휴식 (10분)', en: 'Break (10m)', startMinutesAEST: 530, endMinutesAEST: 540 },
+        { aest: '09:00-09:30', kst: '08:00-08:30', ko: '아침 식사 (30분)', en: 'Breakfast (30m)', startMinutesAEST: 540, endMinutesAEST: 570 },
+        { aest: '09:30-10:00', kst: '08:30-09:00', ko: '휴식 또는 가벼운 활동 (30분)', en: 'Break or Light Activity (30m)', startMinutesAEST: 570, endMinutesAEST: 600 },
+        { aest: '10:00-10:50', kst: '09:00-09:50', ko: '집중 (50분)', en: 'Focus (50m)', startMinutesAEST: 600, endMinutesAEST: 650 },
+        { aest: '10:50-11:00', kst: '09:50-10:00', ko: '휴식 (10분)', en: 'Break (10m)', startMinutesAEST: 650, endMinutesAEST: 660 },
+        { aest: '11:00-11:50', kst: '10:00-10:50', ko: '집중 (50분)', en: 'Focus (50m)', startMinutesAEST: 660, endMinutesAEST: 710 },
+        { aest: '11:50-12:00', kst: '10:50-11:00', ko: '휴식 (10분)', en: 'Break (10m)', startMinutesAEST: 710, endMinutesAEST: 720 },
+        { aest: '12:00-12:50', kst: '11:00-11:50', ko: '집중 (50분)', en: 'Focus (50m)', startMinutesAEST: 720, endMinutesAEST: 770 },
+        { aest: '12:50-13:00', kst: '11:50-12:00', ko: '휴식 (10분)', en: 'Break (10m)', startMinutesAEST: 770, endMinutesAEST: 780 },
+        { aest: '13:00-13:50', kst: '12:00-12:50', ko: '집중 (50분)', en: 'Focus (50m)', startMinutesAEST: 780, endMinutesAEST: 830 },
+        { aest: '13:50-14:00', kst: '12:50-13:00', ko: '휴식 (10분)', en: 'Break (10m)', startMinutesAEST: 830, endMinutesAEST: 840 },
+        { aest: '14:00-14:30', kst: '13:00-13:30', ko: '점심 식사 (30분)', en: 'Lunch (30m)', startMinutesAEST: 840, endMinutesAEST: 870 },
+        { aest: '14:30-15:00', kst: '13:30-14:00', ko: '휴식 또는 가벼운 활동 (30분)', en: 'Break or Light Activity (30m)', startMinutesAEST: 870, endMinutesAEST: 900 },
+        { aest: '15:00-15:50', kst: '14:00-14:50', ko: '집중 (50분)', en: 'Focus (50m)', startMinutesAEST: 900, endMinutesAEST: 950 },
+        { aest: '15:50-16:00', kst: '14:50-15:00', ko: '휴식 (10분)', en: 'Break (10m)', startMinutesAEST: 950, endMinutesAEST: 960 },
+        { aest: '16:00-16:50', kst: '15:00-15:50', ko: '집중 (50분)', en: 'Focus (50m)', startMinutesAEST: 960, endMinutesAEST: 1010 },
+        { aest: '16:50-17:00', kst: '15:50-16:00', ko: '휴식 (10분)', en: 'Break (10m)', startMinutesAEST: 1010, endMinutesAEST: 1020 },
+        { aest: '17:00-17:50', kst: '16:00-16:50', ko: '집중 (50분)', en: 'Focus (50m)', startMinutesAEST: 1020, endMinutesAEST: 1070 },
+        { aest: '17:50-18:00', kst: '16:50-17:00', ko: '휴식 (10분)', en: 'Break (10m)', startMinutesAEST: 1070, endMinutesAEST: 1080 },
+        { aest: '18:00-18:50', kst: '17:00-17:50', ko: '집중 (50분)', en: 'Focus (50m)', startMinutesAEST: 1080, endMinutesAEST: 1130 },
+        { aest: '18:50-19:00', kst: '17:50-18:00', ko: '휴식 (10분)', en: 'Break (10m)', startMinutesAEST: 1130, endMinutesAEST: 1140 },
+        { aest: '19:00-19:30', kst: '18:00-18:30', ko: '저녁 식사 (30분)', en: 'Dinner (30m)', startMinutesAEST: 1140, endMinutesAEST: 1170 },
+        { aest: '19:30-20:00', kst: '18:30-19:00', ko: '휴식 또는 가벼운 활동 (30분)', en: 'Break or Light Activity (30m)', startMinutesAEST: 1170, endMinutesAEST: 1200 },
+        { aest: '20:00-20:50', kst: '19:00-19:50', ko: '집중 (50분)', en: 'Focus (50m)', startMinutesAEST: 1200, endMinutesAEST: 1250 },
+        { aest: '20:50-21:00', kst: '19:50-20:00', ko: '휴식 (10분)', en: 'Break (10m)', startMinutesAEST: 1250, endMinutesAEST: 1260 },
+        { aest: '21:00-21:50', kst: '20:00-20:50', ko: '집중 (50분)', en: 'Focus (50m)', startMinutesAEST: 1260, endMinutesAEST: 1310 },
+        { aest: '21:50-22:00', kst: '20:50-21:00', ko: '휴식 (10분)', en: 'Break (10m)', startMinutesAEST: 1310, endMinutesAEST: 1320 },
+        { aest: '22:00-22:50', kst: '21:00-21:50', ko: '집중 (50분)', en: 'Focus (50m)', startMinutesAEST: 1320, endMinutesAEST: 1370 },
+        { aest: '22:50-23:00', kst: '21:50-22:00', ko: '휴식 (10분)', en: 'Break (10m)', startMinutesAEST: 1370, endMinutesAEST: 1380 },
+        { aest: '23:00-23:50', kst: '22:00-22:50', ko: '집중 (50분)', en: 'Focus (50m)', startMinutesAEST: 1380, endMinutesAEST: 1430 },
+        { aest: '23:50-00:00', kst: '22:50-23:00', ko: '휴식 (10분)', en: 'Break (10m)', startMinutesAEST: 1430, endMinutesAEST: 1440 }, // end is effectively midnight
+    ];
+    const scheduleLength = scheduleData.length;
+
+    let currentActivity = null;
+    let activityIntervalId = null; // For the 1-second countdown
+    let scheduleCheckIntervalId = null; // For the 5-second schedule check
+
+    // Function to get current AEST time components
+    function getCurrentAESTTime() {
+        const now = new Date();
+        try {
+            // Using Intl API for robust timezone conversion
+            const timeString = now.toLocaleTimeString('en-AU', {
+                timeZone: 'Australia/Sydney',
+                hour: '2-digit',
+                minute: '2-digit',
+                second: '2-digit',
+                hour12: false
+            });
+            const [hours, minutes, seconds] = timeString.split(':').map(Number);
+            return { hours, minutes, seconds };
+        } catch (error) {
+            // Fallback for environments where Intl or specific timezone might not be fully supported
+            console.warn("Intl AEST conversion failed, using UTC offset fallback:", error);
+            const utcHours = now.getUTCHours();
+            const utcMinutes = now.getUTCMinutes();
+            const utcSeconds = now.getUTCSeconds();
+            
+            // Determine if it's AEDT (UTC+11) or AEST (UTC+10)
+            // Simplified: Assume AEDT from first Sunday in October to first Sunday in April
+            const year = now.getUTCFullYear();
+            const firstSundayApril = new Date(Date.UTC(year, 3, 1));
+            while (firstSundayApril.getUTCDay() !== 0) { firstSundayApril.setUTCDate(firstSundayApril.getUTCDate() + 1); }
+            
+            const firstSundayOctober = new Date(Date.UTC(year, 9, 1));
+            while (firstSundayOctober.getUTCDay() !== 0) { firstSundayOctober.setUTCDate(firstSundayOctober.getUTCDate() + 1); }
+
+            const isAEDT = now >= firstSundayOctober || now < firstSundayApril;
+            const offset = isAEDT ? 11 : 10;
+
+            let hours = (utcHours + offset) % 24;
+            if (hours < 0) hours += 24; // Ensure positive hours
+
+            return { hours, minutes: utcMinutes, seconds: utcSeconds };
+        }
+    }
+    
+    // Function to determine Pomodoro label from activity
+    function getPomodoroLabel(activity) {
+        const ko = activity.ko.toLowerCase();
+        const en = activity.en.toLowerCase();
+
+        if (ko.includes('집중') || en.includes('focus')) {
+            return 'Focus Time';
+        } else if (ko.includes('긴 휴식') || en.includes('long break') || 
+                   ko.includes('식사') || en.includes('breakfast') || en.includes('lunch') || en.includes('dinner') ||
+                   (en.includes('break or light activity') && (activity.endMinutesAEST - activity.startMinutesAEST >= 30))) {
+            return 'Long Break';
+        } else if (ko.includes('휴식') || en.includes('break')) {
+            return 'Short Break';
+        }
+        return 'Break Time'; // Default for other types of breaks
+    }
+
+    // Function to update the timer display
+    function updateDisplay() {
+        if (!currentActivity) {
+            bodyElement.classList.add('loading');
+            timeLeftDisplay.textContent = '--:--';
+            timerLabelDisplay.textContent = 'Waiting for Schedule';
+            progressValue.style.width = '0%';
+            progressValue.className = 'progress-value'; // Reset class
+            return;
+        }
+        bodyElement.classList.remove('loading');
+
+        const { hours, minutes, seconds } = getCurrentAESTTime();
+        const currentTotalSecondsAEST = hours * 3600 + minutes * 60 + seconds;
+
+        let activityStartSeconds = currentActivity.startMinutesAEST * 60;
+        // Handle midnight crossing for end time
+        let activityEndSeconds = (currentActivity.endMinutesAEST === 0 || currentActivity.endMinutesAEST === 1440) ? 
+                                 (24 * 3600) : (currentActivity.endMinutesAEST * 60);
+        
+        // Adjust for activities that span midnight for duration calculation
+        if (activityEndSeconds < activityStartSeconds && currentActivity.endMinutesAEST !== 0) { // e.g. 23:00 to 01:00
+             // This case means the activity started yesterday relative to its end time today OR ends tomorrow relative to start time today.
+             // If current time is past midnight but activity started before:
+             if (currentTotalSecondsAEST < activityStartSeconds) {
+                 // This means we are in the part of activity that is on the "next" day.
+                 // e.g. activity 23:00-01:00, current time is 00:30. Start was "yesterday".
+                 // For progress, treat start as 0 effectively for this segment.
+             }
+        }
+
+
+        let remainingSeconds;
+        if (activityEndSeconds <= activityStartSeconds) { // Activity crosses midnight
+            if (currentTotalSecondsAEST >= activityStartSeconds) { // Current time is before midnight part
+                remainingSeconds = (24 * 3600 - currentTotalSecondsAEST) + activityEndSeconds;
+            } else { // Current time is after midnight part
+                remainingSeconds = activityEndSeconds - currentTotalSecondsAEST;
+            }
+        } else { // Activity is within the same day
+            remainingSeconds = activityEndSeconds - currentTotalSecondsAEST;
+        }
+        
+        if (remainingSeconds < 0) remainingSeconds = 0; // Ensure no negative time
+
+        const displayMinutes = Math.floor(remainingSeconds / 60);
+        const displaySeconds = remainingSeconds % 60;
+        timeLeftDisplay.textContent = `${String(displayMinutes).padStart(2, '0')}:${String(displaySeconds).padStart(2, '0')}`;
+        
+        const pomodoroLabel = getPomodoroLabel(currentActivity);
+        timerLabelDisplay.textContent = pomodoroLabel;
+
+        // Update progress bar
+        let activityDurationSeconds;
+        if (currentActivity.endMinutesAEST === 0 || currentActivity.endMinutesAEST === 1440) { // Ends at midnight
+            activityDurationSeconds = (1440 - currentActivity.startMinutesAEST) * 60;
+        } else if (currentActivity.endMinutesAEST < currentActivity.startMinutesAEST) { // Crosses midnight
+             activityDurationSeconds = ((1440 - currentActivity.startMinutesAEST) + currentActivity.endMinutesAEST) * 60;
+        }
+        else {
+            activityDurationSeconds = (currentActivity.endMinutesAEST - currentActivity.startMinutesAEST) * 60;
+        }
+
+        if (activityDurationSeconds <= 0) activityDurationSeconds = 1; // Avoid division by zero
+
+        let secondsElapsedInActivity;
+
+        if (currentActivity.endMinutesAEST < currentActivity.startMinutesAEST && currentActivity.endMinutesAEST !== 0) { // Activity crosses midnight
+            if (currentTotalSecondsAEST >= activityStartSeconds) { // Current time is in the "first day" part
+                secondsElapsedInActivity = currentTotalSecondsAEST - activityStartSeconds;
+            } else { // Current time is in the "second day" part
+                secondsElapsedInActivity = ( (24*3600) - activityStartSeconds) + currentTotalSecondsAEST;
+            }
+        } else { // Normal same-day activity or activity ending exactly at midnight
+             secondsElapsedInActivity = currentTotalSecondsAEST - activityStartSeconds;
+        }
+
+
+        const progressPercentage = Math.min(100, (secondsElapsedInActivity / activityDurationSeconds) * 100);
+        progressValue.style.width = `${progressPercentage}%`;
+
+        // Style progress bar based on label
+        progressValue.className = 'progress-value'; // Reset
+        if (pomodoroLabel === 'Short Break') {
+            progressValue.classList.add('break');
+        } else if (pomodoroLabel === 'Long Break') {
+            progressValue.classList.add('long-break');
+        }
+        // Default green is for Focus Time
+
+        if (remainingSeconds <= 0) {
+            // Time's up for this activity, force a schedule check soon
+            console.log("Activity ended, triggering faster schedule check.");
+            checkSchedule(); 
+        }
+    }
+
+    // Function to check the schedule and find the current activity
+    function checkSchedule() {
+        const { hours, minutes } = getCurrentAESTTime();
+        const currentTotalMinutesAEST = hours * 60 + minutes;
+        let foundActivity = null;
+
+        for (let i = 0; i < scheduleLength; i++) {
+            const item = scheduleData[i];
+            const start = item.startMinutesAEST;
+            // Handle end time being 00:00 (midnight) as 1440 for comparison logic
+            const end = (item.endMinutesAEST === 0 && item.startMinutesAEST !== 0) ? 1440 : item.endMinutesAEST;
+
+            if (start < end) { // Activity does not cross midnight
+                if (currentTotalMinutesAEST >= start && currentTotalMinutesAEST < end) {
+                    foundActivity = item;
+                    break;
+                }
+            } else { // Activity crosses midnight (e.g., 23:00 to 01:00)
+                if (currentTotalMinutesAEST >= start || currentTotalMinutesAEST < end) {
+                    foundActivity = item;
+                    break;
+                }
+            }
+        }
+        
+        // Special case for 00:00 when an activity starts exactly at 00:00
+        if (!foundActivity && currentTotalMinutesAEST === 0 && scheduleData[0]?.startMinutesAEST === 0) {
+            foundActivity = scheduleData[0];
+        }
+
+
+        if (foundActivity) {
+            if (!currentActivity || currentActivity.ko !== foundActivity.ko || currentActivity.startMinutesAEST !== foundActivity.startMinutesAEST) {
+                console.log("New activity:", foundActivity.en);
+                currentActivity = foundActivity;
+                 // Clear previous interval and start new one for countdown
+                if (activityIntervalId) clearInterval(activityIntervalId);
+                updateDisplay(); // Update immediately
+                activityIntervalId = setInterval(updateDisplay, 1000);
+            }
+        } else {
+            console.log("No current activity found in schedule.");
+            currentActivity = null;
+            if (activityIntervalId) clearInterval(activityIntervalId);
+            updateDisplay(); // Update to show "Waiting" state
+        }
+    }
+
+    // Initial setup
+    console.log("Initializing Synced Pomodoro...");
+    checkSchedule(); // Initial check
+    scheduleCheckIntervalId = setInterval(checkSchedule, 5000); // Check schedule every 5 seconds
+
+    // Ensure display updates on window load, just in case.
+    window.onload = () => {
+        console.log("Window loaded. Performing initial display update.");
+        checkSchedule(); // Re-check schedule and update display
+    };
+  </script>
+</body>
+</html>

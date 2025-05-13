@@ -91,8 +91,6 @@
 
     <script>
         // --- Schedule Data ---
-        // IMPORTANT: Ensure this array contains the FULL 24-hour schedule without gaps.
-        // The issue shown in the image might be caused by missing data here (e.g., after 06:00).
         const scheduleData = [
             { aest: '00:00-00:50', kst: '23:00-23:50', ko: '집중 (50분)', en: 'Focus (50m)', startMinutesAEST: 0, endMinutesAEST: 50 },
             { aest: '00:50-01:00', kst: '23:50-00:00', ko: '휴식 (10분)', en: 'Break (10m)', startMinutesAEST: 50, endMinutesAEST: 60 },
@@ -105,7 +103,6 @@
             { aest: '04:00-05:00', kst: '03:00-04:00', ko: '긴 휴식 (60분)', en: 'Long Break (60m)', startMinutesAEST: 240, endMinutesAEST: 300 },
             { aest: '05:00-05:50', kst: '04:00-04:50', ko: '집중 (50분)', en: 'Focus (50m)', startMinutesAEST: 300, endMinutesAEST: 350 },
             { aest: '05:50-06:00', kst: '04:50-05:00', ko: '휴식 (10분)', en: 'Break (10m)', startMinutesAEST: 350, endMinutesAEST: 360 },
-            // --- CHECK DATA CONTINUES HERE ---
             { aest: '06:00-06:50', kst: '05:00-05:50', ko: '집중 (50분)', en: 'Focus (50m)', startMinutesAEST: 360, endMinutesAEST: 410 },
             { aest: '06:50-07:00', kst: '05:50-06:00', ko: '휴식 (10분)', en: 'Break (10m)', startMinutesAEST: 410, endMinutesAEST: 420 },
             { aest: '07:00-07:50', kst: '06:00-06:50', ko: '집중 (50분)', en: 'Focus (50m)', startMinutesAEST: 420, endMinutesAEST: 470 },
@@ -141,7 +138,7 @@
             { aest: '22:00-22:50', kst: '21:00-21:50', ko: '집중 (50분)', en: 'Focus (50m)', startMinutesAEST: 1320, endMinutesAEST: 1370 },
             { aest: '22:50-23:00', kst: '21:50-22:00', ko: '휴식 (10분)', en: 'Break (10m)', startMinutesAEST: 1370, endMinutesAEST: 1380 },
             { aest: '23:00-23:50', kst: '22:00-22:50', ko: '집중 (50분)', en: 'Focus (50m)', startMinutesAEST: 1380, endMinutesAEST: 1430 },
-            { aest: '23:50-00:00', kst: '22:50-23:00', ko: '휴식 (10분)', en: 'Break (10m)', startMinutesAEST: 1430, endMinutesAEST: 1440 }, // Ends at 24:00 (1440 minutes)
+            { aest: '23:50-00:00', kst: '22:50-23:00', ko: '휴식 (10분)', en: 'Break (10m)', startMinutesAEST: 1430, endMinutesAEST: 1440 },
         ];
         const scheduleLength = scheduleData.length;
 
