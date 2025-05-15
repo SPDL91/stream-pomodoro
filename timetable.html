@@ -3,14 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>타임테이블 (AEST) - URL Config</title>
+    <title>타임테이블 (AEST) - URL Config - Bell Sound</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <script src="https://unpkg.com/tone"></script>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <script src="https://unpkg.com/tone"></script> <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap" rel="stylesheet">
     <style>
-        /* --- CSS Styles (Unchanged from previous version) --- */
+        /* --- CSS Styles (Unchanged) --- */
         body {
             font-family: 'Inter', sans-serif;
             color: #1a202c;
@@ -90,7 +89,7 @@
     </div>
 
     <script>
-        // --- Schedule Data ---
+        // --- Schedule Data (Unchanged) ---
         const scheduleData = [
             { aest: '00:00-00:50', kst: '23:00-23:50', ko: '집중 (50분)', en: 'Focus (50m)', startMinutesAEST: 0, endMinutesAEST: 50 },
             { aest: '00:50-01:00', kst: '23:50-00:00', ko: '휴식 (10분)', en: 'Break (10m)', startMinutesAEST: 50, endMinutesAEST: 60 },
@@ -147,10 +146,10 @@
 
         // --- State Variables ---
         let currentActivityIndex = -1;
-        let synth = null;
+        let soundPlayer = null; // MODIFIED: Changed from 'synth' to 'soundPlayer'
         let isMuted = false;
-        let currentVolume = -10;
-        let soundInitialized = false;
+        let currentVolume = -10; // Default volume in dB
+        let soundInitialized = false; // Will be true once the soundPlayer is loaded
         let audioContextResumed = false;
 
         // --- Configuration (Defaults) ---
@@ -160,12 +159,130 @@
         function getUrlParams() { const params = new URLSearchParams(window.location.search); const urlConfig = {}; const linesBeforeParam = params.get('linesBefore'); if (linesBeforeParam !== null) { const val = parseInt(linesBeforeParam, 10); if (!isNaN(val) && val >= 0) urlConfig.linesBefore = val; } const linesAfterParam = params.get('linesAfter'); if (linesAfterParam !== null) { const val = parseInt(linesAfterParam, 10); if (!isNaN(val) && val >= 0) urlConfig.linesAfter = val; } const volumeParam = params.get('volume'); if (volumeParam !== null) { const val = parseFloat(volumeParam); if (!isNaN(val)) urlConfig.volume = val; } const mutedParam = params.get('muted'); if (mutedParam !== null) { urlConfig.muted = mutedParam.toLowerCase() === 'true'; } const bgColorParam = params.get('bgColor'); if (bgColorParam !== null && /^[0-9a-fA-F]{6}$/.test(bgColorParam)) { urlConfig.bgColor = bgColorParam; } else if (bgColorParam !== null && /^[0-9a-fA-F]{3}$/.test(bgColorParam)) { urlConfig.bgColor = bgColorParam.split('').map(c => c+c).join(''); } const bgAlphaParam = params.get('bgAlpha'); if (bgAlphaParam !== null) { const val = parseFloat(bgAlphaParam); if (!isNaN(val) && val >= 0 && val <= 1) { urlConfig.bgAlpha = val; } } return urlConfig; }
         function hexToRgba(hex, alpha) { hex = hex.replace(/^#/, ''); if (hex.length === 3) { hex = hex.split('').map(c => c + c).join(''); } if (hex.length !== 6) { console.warn(`Invalid hex color: #${hex}. Falling back.`); return `rgba(240, 244, 248, ${alpha})`; } const bigint = parseInt(hex, 16); const r = (bigint >> 16) & 255; const g = (bigint >> 8) & 255; const b = bigint & 255; alpha = Math.max(0, Math.min(1, alpha)); return `rgba(${r}, ${g}, ${b}, ${alpha})`; }
 
-        // --- Apply Configuration (Unchanged) ---
-        function applyConfiguration() { const urlParams = getUrlParams(); config = { ...config, ...urlParams }; console.log("Applied Configuration:", config); document.body.style.backgroundColor = hexToRgba(config.bgColor, config.bgAlpha); isMuted = config.muted; currentVolume = config.volume; if (soundInitialized && synth && synth.volume) { synth.volume.value = isMuted ? -Infinity : currentVolume; console.log("Initial sound volume set from config:", synth.volume.value); } }
+        // --- Apply Configuration ---
+        function applyConfiguration() {
+            const urlParams = getUrlParams();
+            config = { ...config, ...urlParams };
+            console.log("Applied Configuration:", config);
+            document.body.style.backgroundColor = hexToRgba(config.bgColor, config.bgAlpha);
+            isMuted = config.muted;
+            currentVolume = config.volume;
+            // MODIFIED: Apply volume to soundPlayer if it exists
+            if (soundInitialized && soundPlayer && soundPlayer.volume) {
+                soundPlayer.volume.value = isMuted ? -Infinity : currentVolume;
+                console.log("Initial sound volume set from config:", soundPlayer.volume.value);
+            }
+        }
 
-        // --- Sound Functions (Unchanged) ---
-        function initializeSound() { if (soundInitialized && synth) { if (synth.volume) synth.volume.value = isMuted ? -Infinity : currentVolume; return true; } if (typeof Tone === 'undefined' || !Tone.Synth) { console.error("Tone.js library not loaded correctly."); return false; } if (Tone.context.state !== 'running') { if (audioContextResumed) { Tone.start().catch(err => console.warn("Could not resume AudioContext even after interaction:", err)); } else { console.log("AudioContext not running. Waiting for user interaction (click/touch)."); return false; } } if (Tone.context.state !== 'running') { console.log("AudioContext still not running after attempt."); return false; } try { synth = new Tone.Synth().toDestination(); synth.volume.value = isMuted ? -Infinity : currentVolume; soundInitialized = true; console.log("Sound initialized. Volume:", isMuted ? "Muted" : `${currentVolume} dB`); return true; } catch (error) { console.error("Error creating Tone.Synth:", error); soundInitialized = false; synth = null; return false; } }
-        function playNotificationSound(isUnmuteSound = false) { if (!soundInitialized || !synth) { if (!isUnmuteSound) console.log("Sound not initialized. Attempting now..."); if (!initializeSound()) { if (!isUnmuteSound) console.log("Sound initialization failed. Cannot play sound yet."); return; } } if (isMuted) { if (!isUnmuteSound) console.log("Sound muted, skipping playback."); return; } if (Tone.context.state !== 'running') { if (!isUnmuteSound) console.log(`AudioContext not running (${Tone.context.state}). Cannot play sound.`); if (audioContextResumed) { Tone.start().catch(err => console.warn("Could not resume AudioContext:", err)); } return; } try { const note = isUnmuteSound ? "E5" : "C5"; synth.triggerAttackRelease(note, "8n", Tone.now() + 0.05); if (!isUnmuteSound) console.log("Played notification sound."); else console.log("Played unmute confirmation sound."); } catch (error) { console.error("Error playing sound:", error); } }
+        // --- MODIFIED: Sound Functions ---
+        function initializeSound() {
+            // If already initialized and soundPlayer exists, just ensure volume is set.
+            if (soundInitialized && soundPlayer) {
+                if (soundPlayer.volume) soundPlayer.volume.value = isMuted ? -Infinity : currentVolume;
+                return true;
+            }
+
+            if (typeof Tone === 'undefined' || !Tone.Player) { // Check for Tone.Player
+                console.error("Tone.js library not loaded correctly or Tone.Player is unavailable.");
+                return false;
+            }
+
+            // Check AudioContext state
+            if (Tone.context.state !== 'running') {
+                if (audioContextResumed) {
+                    // If interaction happened but context isn't running, try to start it again.
+                    Tone.start().catch(err => console.warn("Could not resume AudioContext even after interaction:", err));
+                } else {
+                    console.log("AudioContext not running. Waiting for user interaction (click/touch).");
+                    return false; // Don't try to initialize player yet
+                }
+            }
+             // Re-check after potential Tone.start()
+            if (Tone.context.state !== 'running') {
+                console.log("AudioContext still not running after attempt.");
+                return false;
+            }
+
+            try {
+                // Create a new Tone.Player instance
+                soundPlayer = new Tone.Player({
+                    url: "sounds/bell.wav", // Path to your sound file
+                    autostart: false,        // We will start it manually
+                    onload: () => {
+                        soundInitialized = true; // Set initialized to true ONLY after file loads
+                        if (soundPlayer.volume) { // Ensure volume property exists
+                           soundPlayer.volume.value = isMuted ? -Infinity : currentVolume;
+                        }
+                        console.log("Sound player initialized and bell.wav loaded. Volume:", isMuted ? "Muted" : `${currentVolume} dB`);
+                    },
+                    onerror: (error) => {
+                        console.error("Error loading sound file (bell.wav):", error);
+                        soundInitialized = false;
+                        soundPlayer = null;
+                    }
+                }).toDestination(); // Connect player to the master output
+
+                // Note: soundInitialized is set true inside the onload callback.
+                // The function will return true optimistically, but actual playback readiness depends on onload.
+                return true;
+
+            } catch (error) {
+                console.error("Error creating Tone.Player:", error);
+                soundInitialized = false;
+                soundPlayer = null;
+                return false;
+            }
+        }
+
+        function playNotificationSound(isUnmuteSound = false) {
+            // Attempt to initialize sound if not already (might happen if first call is before user interaction)
+            if (!soundInitialized || !soundPlayer) {
+                if (!isUnmuteSound) console.log("Sound not initialized or player not ready. Attempting now...");
+                if (!initializeSound()) { // This will attempt to create the player
+                    if (!isUnmuteSound) console.log("Sound initialization failed or file not loaded yet. Cannot play sound.");
+                    return;
+                }
+                // If initializeSound was called, we must wait for its onload callback before soundPlayer is truly ready.
+                // However, if soundInitialized is now true, it means onload has fired.
+                if (!soundInitialized) {
+                     if (!isUnmuteSound) console.log("Sound file (bell.wav) is still loading. Try again shortly.");
+                     return;
+                }
+            }
+
+            if (isMuted && !isUnmuteSound) { // Don't play if muted, unless it's the unmute confirmation
+                console.log("Sound muted, skipping playback.");
+                return;
+            }
+
+            if (Tone.context.state !== 'running') {
+                if (!isUnmuteSound) console.log(`AudioContext not running (${Tone.context.state}). Cannot play sound.`);
+                // Attempt to resume context if it was previously resumed by interaction
+                if (audioContextResumed) {
+                    Tone.start().catch(err => console.warn("Could not resume AudioContext for playback:", err));
+                }
+                return;
+            }
+
+            // Check if the player is loaded (redundant if soundInitialized is true, but good for safety)
+            if (!soundPlayer.loaded) {
+                if (!isUnmuteSound) console.log("Sound player is not loaded yet. Cannot play sound.");
+                return;
+            }
+
+            try {
+                // Start the player.
+                // For a bell sound, we typically don't need to specify a note or duration like a synth.
+                // The `isUnmuteSound` logic for different notes is removed as we play the same bell sound.
+                soundPlayer.start(Tone.now() + 0.05); // Play with a slight delay
+                if (!isUnmuteSound) console.log("Played notification sound (bell.wav).");
+                else console.log("Played unmute confirmation sound (bell.wav).");
+            } catch (error) {
+                console.error("Error playing sound (bell.wav):", error);
+            }
+        }
+
+        // --- Get Current AEST Time (Unchanged) ---
         function getCurrentAESTTime() { const now = new Date(); try { const timeString = now.toLocaleTimeString('en-AU', { timeZone: 'Australia/Sydney', hour: '2-digit', minute: '2-digit', second: '2-digit', hour12: false }); const [hours, minutes, seconds] = timeString.split(':').map(Number); return { hours, minutes, seconds }; } catch (error) { console.error("Error getting AEST time using Intl:", error); const utcHours = now.getUTCHours(); const month = now.getUTCMonth(); const isAEDT = (month > 8 || month < 3); const offset = isAEDT ? 11 : 10; const aestHours = (utcHours + offset) % 24; const minutes = now.getUTCMinutes(); const seconds = now.getUTCSeconds(); console.warn(`Falling back to manual UTC+${offset} calculation.`); return { hours: aestHours, minutes, seconds }; } }
 
         // --- Create Schedule Item Element (Unchanged) ---
@@ -175,20 +292,9 @@
             itemDiv.classList.add('schedule-item');
             itemDiv.id = `schedule-item-${index}`;
             let checkmark = '';
-            // Apply classes based on the calculated status
             switch (status) {
-                case 'past':
-                    itemDiv.classList.add('past');
-                    checkmark = '<span class="checkmark">✔</span>';
-                    break;
-                case 'current':
-                    itemDiv.classList.add('current');
-                    break;
-                case 'future':
-                default:
-                    // No extra class needed for future, but could add one if desired
-                    // itemDiv.classList.add('future');
-                    break;
+                case 'past': itemDiv.classList.add('past'); checkmark = '<span class="checkmark">✔</span>'; break;
+                case 'current': itemDiv.classList.add('current'); break;
             }
             itemDiv.innerHTML = `
                 <div class="time-stacked-col">
@@ -202,132 +308,105 @@
             return itemDiv;
         }
 
-        // --- MODIFIED: Helper to determine item status relative to current ---
+        // --- Get Item Status (Unchanged) ---
         function getItemStatus(itemIndex, currentIndex, scheduleLen) {
-            // If no item is current (e.g., at the exact transition), treat everything as future? Or base on time?
-            // Let's stick to index comparison for simplicity with before/after display logic.
-            // If updateSchedule determines no current index, it handles status separately.
-             if (currentIndex === -1) {
-                 // This case is handled in updateSchedule's 'else' block now.
-                 // We could compare item time to current time here, but index logic is simpler for display.
-                 return 'future'; // Default assumption if called unexpectedly
-             }
+             if (currentIndex === -1) return 'future';
             if (itemIndex === currentIndex) return 'current';
-
-            // Calculate shortest distance forward and backward in the circular array
             const forwardDistance = (itemIndex - currentIndex + scheduleLen) % scheduleLen;
             const backwardDistance = (currentIndex - itemIndex + scheduleLen) % scheduleLen;
-
-            // Determine status based on the shortest path
-            if (backwardDistance < forwardDistance) {
-                return 'past';
-            } else {
-                // Includes the case where forwardDistance === backwardDistance (item is exactly opposite)
-                return 'future';
-            }
+            return (backwardDistance < forwardDistance) ? 'past' : 'future';
         }
 
-
-        // --- MODIFIED: Update Schedule Display (Improved Status Assignment) ---
+        // --- Update Schedule Display (Unchanged logic, uses modified playNotificationSound) ---
         function updateSchedule() {
              if (!scheduleContainer || scheduleLength === 0) { console.error("Schedule container not found or schedule data empty."); scheduleContainer.innerHTML = '<div class="text-center text-gray-500 p-4">Error loading schedule.</div>'; return; }
-
-            // Find current activity index (logic unchanged)
             const { hours, minutes } = getCurrentAESTTime();
             const currentTotalMinutes = hours * 60 + minutes;
-            let activityChanged = false;
             let newCurrentIndex = -1;
             for (let i = 0; i < scheduleLength; i++) { const item = scheduleData[i]; const start = item.startMinutesAEST; const end = item.endMinutesAEST === 0 ? 1440 : item.endMinutesAEST; if (start < end) { if (currentTotalMinutes >= start && currentTotalMinutes < end) { newCurrentIndex = i; break; } } else { if (currentTotalMinutes >= start || currentTotalMinutes < end) { newCurrentIndex = i; break; } } } if (newCurrentIndex === -1 && currentTotalMinutes === 0 && scheduleData[0]?.startMinutesAEST === 0) { newCurrentIndex = 0; }
-
-            // Check if activity changed (logic unchanged)
-            if (newCurrentIndex !== currentActivityIndex) { activityChanged = true; if (currentActivityIndex !== -1) { console.log(`Activity changed from index ${currentActivityIndex} to ${newCurrentIndex}`); playNotificationSound(); } else { console.log(`Initial activity index set to ${newCurrentIndex}`); } currentActivityIndex = newCurrentIndex; }
-
-            // Determine items to display (logic unchanged for index calculation)
-            const currentLinesBefore = config.linesBefore;
-            const currentLinesAfter = config.linesAfter;
+            if (newCurrentIndex !== currentActivityIndex) { if (currentActivityIndex !== -1) { console.log(`Activity changed from index ${currentActivityIndex} to ${newCurrentIndex}`); playNotificationSound(); } else { console.log(`Initial activity index set to ${newCurrentIndex}`); } currentActivityIndex = newCurrentIndex; }
             const itemsToDisplay = [];
-            const displayedIndices = new Set(); // Keep track to avoid duplicates
-
+            const displayedIndices = new Set();
             if (currentActivityIndex !== -1) {
-                // Add items BEFORE current
-                for (let i = currentLinesBefore; i >= 1; i--) {
-                    const index = (currentActivityIndex - i + scheduleLength) % scheduleLength;
-                    if (!displayedIndices.has(index)) {
-                        // MODIFIED: Use helper function to determine correct status
-                        const status = getItemStatus(index, currentActivityIndex, scheduleLength);
-                        itemsToDisplay.push({ item: scheduleData[index], index: index, status: status });
-                        displayedIndices.add(index);
-                    }
-                }
-                // Add CURRENT item
-                 if (!displayedIndices.has(currentActivityIndex)) {
-                     // Status is always 'current'
-                     itemsToDisplay.push({ item: scheduleData[currentActivityIndex], index: currentActivityIndex, status: 'current' });
-                     displayedIndices.add(currentActivityIndex);
-                 }
-                // Add items AFTER current
-                for (let i = 1; i <= currentLinesAfter; i++) {
-                    const index = (currentActivityIndex + i) % scheduleLength;
-                    if (!displayedIndices.has(index)) {
-                         // MODIFIED: Use helper function to determine correct status
-                        const status = getItemStatus(index, currentActivityIndex, scheduleLength);
-                        itemsToDisplay.push({ item: scheduleData[index], index: index, status: status });
-                        displayedIndices.add(index);
-                    }
-                }
-                 console.debug(`UpdateSchedule - CurrentIdx: ${currentActivityIndex}, Before: ${currentLinesBefore}, After: ${currentLinesAfter}, Items:`, itemsToDisplay.map(d => `(${d.index}:${d.status})`).join(', '));
-
+                for (let i = config.linesBefore; i >= 1; i--) { const index = (currentActivityIndex - i + scheduleLength) % scheduleLength; if (!displayedIndices.has(index)) { itemsToDisplay.push({ item: scheduleData[index], index: index, status: getItemStatus(index, currentActivityIndex, scheduleLength) }); displayedIndices.add(index); } }
+                if (!displayedIndices.has(currentActivityIndex)) { itemsToDisplay.push({ item: scheduleData[currentActivityIndex], index: currentActivityIndex, status: 'current' }); displayedIndices.add(currentActivityIndex); }
+                for (let i = 1; i <= config.linesAfter; i++) { const index = (currentActivityIndex + i) % scheduleLength; if (!displayedIndices.has(index)) { itemsToDisplay.push({ item: scheduleData[index], index: index, status: getItemStatus(index, currentActivityIndex, scheduleLength) }); displayedIndices.add(index); } }
+                 console.debug(`UpdateSchedule - CurrentIdx: ${currentActivityIndex}, Before: ${config.linesBefore}, After: ${config.linesAfter}, Items:`, itemsToDisplay.map(d => `(${d.index}:${d.status})`).join(', '));
             } else {
-                // Handle case where no activity is currently active (e.g., midnight gap if data doesn't cover it)
-                // Display the first few items as 'future'
                  console.debug(`UpdateSchedule - No current activity found.`);
-                 const numToShow = currentLinesBefore + 1 + currentLinesAfter; // Show total number of configured lines
-                 for (let i = 0; i < Math.min(numToShow, scheduleLength); i++) {
-                     // Check if index is valid and not already added (though set should be empty here)
-                     if (i < scheduleLength && !displayedIndices.has(i)) {
-                         // Assign 'future' status as there's no 'current' reference point
-                         itemsToDisplay.push({ item: scheduleData[i], index: i, status: 'future' });
-                         displayedIndices.add(i);
-                     }
-                 }
+                 const numToShow = config.linesBefore + 1 + config.linesAfter;
+                 for (let i = 0; i < Math.min(numToShow, scheduleLength); i++) { if (i < scheduleLength && !displayedIndices.has(i)) { itemsToDisplay.push({ item: scheduleData[i], index: i, status: 'future' }); displayedIndices.add(i); } }
             }
-
-            // Render the schedule items (logic unchanged)
             scheduleContainer.innerHTML = '';
-            if (itemsToDisplay.length === 0 && scheduleLength > 0) {
-                scheduleContainer.innerHTML = '<div class="text-center text-gray-500 p-4">표시할 항목이 없습니다.</div>';
-            } else {
-                // Sort items based on index to ensure absolute order? No, the loops add them in relative order.
-                // If the order IS wrong, it points to the index calculation or data.
-                itemsToDisplay.forEach(itemData => {
-                    scheduleContainer.appendChild(createScheduleElement(itemData));
-                });
-            }
-
-            // Add info message if no activity is current (logic unchanged)
-             if (currentActivityIndex === -1 && itemsToDisplay.length > 0) {
-                 const infoDiv = document.createElement('div');
-                 infoDiv.className = 'text-center text-orange-600 text-xs p-2';
-                 infoDiv.textContent = '현재 진행 중인 활동이 없습니다.';
-                 // Insert message before the first schedule item if container isn't empty
-                 if(scheduleContainer.firstChild) {
-                    scheduleContainer.insertBefore(infoDiv, scheduleContainer.firstChild);
-                 } else {
-                    scheduleContainer.appendChild(infoDiv);
-                 }
-             }
+            if (itemsToDisplay.length === 0 && scheduleLength > 0) { scheduleContainer.innerHTML = '<div class="text-center text-gray-500 p-4">표시할 항목이 없습니다.</div>'; }
+            else { itemsToDisplay.forEach(itemData => { scheduleContainer.appendChild(createScheduleElement(itemData)); }); }
+             if (currentActivityIndex === -1 && itemsToDisplay.length > 0) { const infoDiv = document.createElement('div'); infoDiv.className = 'text-center text-orange-600 text-xs p-2'; infoDiv.textContent = '현재 진행 중인 활동이 없습니다.'; if(scheduleContainer.firstChild) { scheduleContainer.insertBefore(infoDiv, scheduleContainer.firstChild); } else { scheduleContainer.appendChild(infoDiv); } }
         }
 
-        // --- Initial Setup and Update Loop (Unchanged) ---
-        applyConfiguration();
-        if (scheduleContainer) { updateSchedule(); } else { console.error("Schedule container not found for initial update."); }
-        const updateInterval = setInterval(updateSchedule, 5000); // Update every 5 seconds
+        // --- Initial Setup and Update Loop ---
+        applyConfiguration(); // Apply URL params first
+        if (scheduleContainer) {
+            // Initialize sound here, but playback readiness depends on user interaction and file loading
+            initializeSound();
+            updateSchedule(); // Initial render
+        } else {
+            console.error("Schedule container not found for initial update.");
+        }
+        const updateInterval = setInterval(updateSchedule, 5000);
 
-        // --- Audio Context Handling (Unchanged) ---
-        function handleUserInteraction() { if (typeof Tone === 'undefined') return; if (Tone.context.state !== 'running') { console.log("User interaction detected, attempting to start/resume AudioContext..."); Tone.start().then(() => { console.log("AudioContext started/resumed successfully via user interaction."); audioContextResumed = true; if (!soundInitialized) { initializeSound(); } if (synth && synth.volume) { synth.volume.value = isMuted ? -Infinity : currentVolume; } updateSchedule(); }).catch(err => { console.error("Error starting/resuming AudioContext on interaction:", err); }).finally(() => { document.body.removeEventListener('click', handleUserInteraction); document.body.removeEventListener('touchstart', handleUserInteraction); }); } else if (!soundInitialized) { console.log("AudioContext running, attempting to initialize sound now."); initializeSound(); document.body.removeEventListener('click', handleUserInteraction); document.body.removeEventListener('touchstart', handleUserInteraction); } else { document.body.removeEventListener('click', handleUserInteraction); document.body.removeEventListener('touchstart', handleUserInteraction); } }
+        // --- Audio Context Handling ---
+        function handleUserInteraction() {
+            if (typeof Tone === 'undefined') return;
+
+            if (Tone.context.state !== 'running') {
+                console.log("User interaction detected, attempting to start/resume AudioContext...");
+                Tone.start().then(() => {
+                    console.log("AudioContext started/resumed successfully via user interaction.");
+                    audioContextResumed = true;
+                    // If sound wasn't initialized (e.g. because context wasn't running), try now.
+                    // Or if it was initialized but player wasn't loaded, this ensures volume is set.
+                    if (!soundInitialized || (soundPlayer && !soundPlayer.loaded)) {
+                        initializeSound(); // This will create the player and it will start loading
+                    } else if (soundPlayer && soundPlayer.volume) {
+                        // If already initialized and loaded, ensure volume is correct
+                        soundPlayer.volume.value = isMuted ? -Infinity : currentVolume;
+                    }
+                    updateSchedule(); // Update display, might be relevant if something was waiting for context
+                }).catch(err => {
+                    console.error("Error starting/resuming AudioContext on interaction:", err);
+                }).finally(() => {
+                    // Remove listeners after first interaction to avoid multiple calls
+                    document.body.removeEventListener('click', handleUserInteraction);
+                    document.body.removeEventListener('touchstart', handleUserInteraction);
+                });
+            } else if (!soundInitialized || (soundPlayer && !soundPlayer.loaded)) {
+                // Context is running, but sound player might not be ready (e.g. waiting for file load)
+                console.log("AudioContext running, ensuring sound is initialized/loaded.");
+                initializeSound(); // Attempt to initialize if not already, or ensure loading starts
+                document.body.removeEventListener('click', handleUserInteraction);
+                document.body.removeEventListener('touchstart', handleUserInteraction);
+            } else {
+                // Context running and sound likely initialized, remove listeners
+                document.body.removeEventListener('click', handleUserInteraction);
+                document.body.removeEventListener('touchstart', handleUserInteraction);
+            }
+        }
+        // Add event listeners for the first user interaction
         document.body.addEventListener('click', handleUserInteraction);
         document.body.addEventListener('touchstart', handleUserInteraction);
-        window.addEventListener('load', () => { console.log("Window loaded."); initializeSound(); });
+
+        // Attempt to initialize sound on window load, but it might be blocked by autoplay policies
+        // User interaction is generally required for sound.
+        window.addEventListener('load', () => {
+            console.log("Window loaded. Attempting initial sound setup.");
+            // applyConfiguration() was already called.
+            // initializeSound() will be called, but actual sound readiness depends on AudioContext state
+            // which often requires user interaction.
+            if (Tone.context.state === 'running') { // If context is already running (e.g. browser allows it)
+                initializeSound();
+            }
+            // Initial schedule update is already handled after applyConfiguration
+        });
 
     </script>
 
