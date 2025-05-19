@@ -3,6 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <title>Stream‑Pomodoro</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
   <link href="https://fonts.googleapis.com/css2?family=Comic+Neue:wght@700&family=Roboto+Mono:wght@500&display=swap" rel="stylesheet"/>
 
@@ -16,10 +17,14 @@
     <h2 id="timer-label">Focus Time</h2>
   </div>
 
-  <!-- controls (optional) -->
   <div id="controls">
     <button id="start_stop">Start / Pause</button>
     <button id="reset">Reset</button>
+
+    <div id="manual-break-controls" style="display: flex; flex-direction: row; gap: 10px; margin-top: 10px; justify-content: center;">
+        <button id="trigger-short-break">Start Short Break</button>
+        <button id="trigger-long-break">Start Long Break</button>
+    </div>
 
     <div class="picker">
       <label>Focus <input id="session-length"      type="number" min="1" max="120" value="25"></label>
@@ -30,6 +35,7 @@
 
   <audio id="work-sound" src="sounds/work.mp3" preload="auto"></audio>
   <audio id="break-sound" src="sounds/break.mp3" preload="auto"></audio>
+  
   <script src="script.js"></script>
 </body>
 </html>
