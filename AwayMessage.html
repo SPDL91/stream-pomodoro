@@ -140,6 +140,8 @@
             exercise: { en: "Exercise", ko: "운동" },
             out: { en: "Out", ko: "외출" },
             shower: { en: "Shower", ko: "샤워" },
+            snack: { en: "Snack", ko: "간식" },
+            study: { en: "Study", ko: "샤워" },
             class: { en: "Class", ko: "수업" }
         };
 
@@ -249,11 +251,9 @@
 
         document.addEventListener('DOMContentLoaded', () => {
             populateControls();
-            updateLabels('break'); // Set initial label
-            applyCustomStyles(); // Apply styles based on CSS variables
-
-            // Optional: If you expect OBS to dynamically change CSS vars after load (uncommon for custom CSS box)
-            // you might need a MutationObserver or a periodic re-check. For most cases, load-time is sufficient.
+            updateLabels('break');
+            // give OBS a moment to inject its CSS
+            setTimeout(applyCustomStyles, 100);
         });
     </script>
 </body>
