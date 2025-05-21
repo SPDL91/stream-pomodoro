@@ -49,7 +49,7 @@
             font-family: var(--font, var(--default-font-family)); /* Applied font family */
             /* Background color and transparency are set by JavaScript */
 
-            display: flex;
+            display: flex; /* Default display state */
             flex-direction: column;
             justify-content: center;
             align-items: center;
@@ -122,7 +122,7 @@
 
     <div id="controls">
         <h3>Activity Status</h3>
-        </div>
+        <button id="toggle-visibility-btn">Hide</button> </div>
 
     <div id="display-wrapper">
         <div id="display-element">
@@ -149,6 +149,10 @@
         const labelEnElement = document.getElementById('label-en');
         const labelKoElement = document.getElementById('label-ko');
         const controlsContainer = document.getElementById('controls');
+        const displayElement = document.getElementById('display-element'); // Get reference to the display element
+        const toggleVisibilityBtn = document.getElementById('toggle-visibility-btn'); // Get reference to the new button
+
+        let isContentVisible = true; // State variable to track visibility
 
         function updateLabels(labelKey) {
             if (labels[labelKey]) {
@@ -158,11 +162,13 @@
         }
 
         function populateControls() {
+            // Populate label buttons (before the toggle button)
+            const toggleBtn = document.getElementById('toggle-visibility-btn'); // Get it again to insert before it
             for (const key in labels) {
                 const button = document.createElement('button');
                 button.textContent = labels[key].en; // Use English for button text
                 button.onclick = () => updateLabels(key);
-                controlsContainer.appendChild(button);
+                controlsContainer.insertBefore(button, toggleBtn); // Insert before the toggle button
             }
         }
 
@@ -202,7 +208,7 @@
 
         function applyCustomStyles() {
             const root = document.documentElement;
-            const displayElement = document.getElementById('display-element');
+            // const displayElement = document.getElementById('display-element'); // Already globally defined
             const computedRootStyle = getComputedStyle(root);
 
             // Font color and family are applied directly by CSS using var() fallbacks.
@@ -219,7 +225,7 @@
                 if (!finalBgColorRgb) {
                     console.warn(`Could not parse user-defined --background-color: "${obsBgColorOverride}". Calculating complementary to font color.`);
                     const fontRgb = parseColor(currentFontColor);
-                    finalBgColorRgb = getComplementaryRGB(fontRgb || {r: 255, g: 255, b: 255}); // Fallback for complementary calculation (e.g. if font color is transparent)
+                    finalBgColorRgb = getComplementaryRGB(fontRgb || {r: 255, g: 255, b: 255}); // Fallback for complementary calculation
                 }
             } else if (obsBgColorOverride.toLowerCase() === 'transparent') {
                  // User explicitly wants transparent background
@@ -243,17 +249,27 @@
             if (finalBgColorRgb) {
                 displayElement.style.backgroundColor = `rgba(${finalBgColorRgb.r}, ${finalBgColorRgb.g}, ${finalBgColorRgb.b}, ${alpha})`;
             } else {
-                // Ultimate fallback if all color parsing fails (e.g. user set transparent bg, and we need some color for the calculation base)
-                // This case should ideally not be hit if logic above is correct.
-                // If font color was also transparent, complementary is tricky. Let's use a semi-transparent gray.
                 displayElement.style.backgroundColor = `rgba(128, 128, 128, ${alpha * 0.5})`; 
             }
         }
 
+        // Event listener for the toggle visibility button
+        toggleVisibilityBtn.addEventListener('click', () => {
+            isContentVisible = !isContentVisible; // Toggle the state
+            if (isContentVisible) {
+                displayElement.style.display = 'flex'; // Or 'block' or its original display type
+                toggleVisibilityBtn.textContent = 'Hide';
+                applyCustomStyles(); // Re-apply styles, including background
+            } else {
+                displayElement.style.display = 'none';
+                toggleVisibilityBtn.textContent = 'Show';
+            }
+        });
+
         document.addEventListener('DOMContentLoaded', () => {
             populateControls();
-            updateLabels('break');
-            // give OBS a moment to inject its CSS
+            updateLabels('break'); // Set initial labels
+            // Give OBS a moment to inject its CSS before applying styles
             setTimeout(applyCustomStyles, 100);
         });
     </script>
